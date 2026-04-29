@@ -20,13 +20,16 @@ import sys
 import threading
 import time
 import tkinter as tk
+import ctypes
+import types
 import webbrowser
 from collections import deque
 from tkinter import messagebox, ttk
+from pathlib import Path
 
 import ping3
 import psutil
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageTk
 import pystray
 
 from net_utils import (
@@ -78,6 +81,18 @@ PROCESS_BLACKLIST = {
     "csrss.exe", "smss.exe", "winlogon.exe", "services.exe", "lsass.exe",
 }
 
+GWL_EXSTYLE = -20
+WS_EX_TOOLWINDOW = 0x00000080
+WS_EX_APPWINDOW = 0x00040000
+SW_HIDE = 0
+SW_SHOWNORMAL = 1
+SW_SHOWMINIMIZED = 2
+SW_RESTORE = 9
+SWP_NOMOVE = 0x0002
+SWP_NOSIZE = 0x0001
+SWP_NOZORDER = 0x0004
+SWP_FRAMECHANGED = 0x0020
+
 ping3.EXCEPTIONS = False
 
 DISPLAY_MS = 300        # refresh overlay (latency + fps)
@@ -89,8 +104,83 @@ LOSS_WINDOW = 20        # số mẫu gần nhất tính packet loss
 DEVELOPER_NAME = "ムKim - BunnyDOG Guild WWM"
 COPYRIGHT_YEAR = "2026"
 DONATE_URL = "https://www.paypal.com/donate/?hosted_button_id=5F4PKX7KSHDYN"
+ASSET_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
+ICON_PNG = ASSET_DIR / "icon.png"
+DONATE_PNG = ASSET_DIR / "donate-pp.png"
 
 SUPERVISOR_MS = 2000    # nhịp kiểm tra process sống/chết + auto-detect game mới
+
+_UI_IMAGE_CACHE: dict[tuple[str, int, int], ImageTk.PhotoImage] = {}
+
+
+def _load_ui_photo(path: Path, max_w: int = 0, max_h: int = 0) -> ImageTk.PhotoImage | None:
+    key = (str(path), int(max_w), int(max_h))
+    cached = _UI_IMAGE_CACHE.get(key)
+    if cached is not None:
+        return cached
+    try:
+        img = Image.open(path)
+        if max_w > 0 and max_h > 0:
+            img.thumbnail((max_w, max_h), Image.LANCZOS)
+        photo = ImageTk.PhotoImage(img)
+        _UI_IMAGE_CACHE[key] = photo
+        return photo
+    except Exception as e:
+        print(f"[ui] image load failed: {path.name}: {e}")
+        return None
+
+
+def _apply_window_icon(window) -> None:
+    photo = _load_ui_photo(ICON_PNG, 64, 64)
+    if photo is None:
+        return
+    try:
+        window._app_icon_photo = photo
+        window.iconphoto(True, photo)
+    except Exception:
+        pass
+
+
+def _show_copyright_dialog(parent, app) -> None:
+    dialog = tk.Toplevel(parent)
+    dialog.title(tr(app, "copyright_title"))
+    dialog.transient(parent)
+    dialog.resizable(False, False)
+    dialog.grab_set()
+    _apply_window_icon(dialog)
+
+    body = tr(
+        app,
+        "copyright_body",
+        version=__version__,
+        developer=DEVELOPER_NAME,
+        year=COPYRIGHT_YEAR,
+    )
+
+    root = ttk.Frame(dialog, padding=16)
+    root.pack(fill="both", expand=True)
+
+    top = ttk.Frame(root)
+    top.pack(fill="x")
+
+    icon = _load_ui_photo(ICON_PNG, 52, 52)
+    if icon is not None:
+        icon_label = ttk.Label(top, image=icon)
+        icon_label.image = icon
+        icon_label.pack(side="left", padx=(0, 12), anchor="n")
+
+    text_label = ttk.Label(top, text=body, justify="left")
+    text_label.pack(side="left", fill="both", expand=True)
+
+    ttk.Button(root, text=tr(app, "button_ok"), command=dialog.destroy).pack(
+        anchor="e", pady=(14, 0)
+    )
+
+    dialog.update_idletasks()
+    x = parent.winfo_rootx() + max((parent.winfo_width() - dialog.winfo_width()) // 2, 0)
+    y = parent.winfo_rooty() + max((parent.winfo_height() - dialog.winfo_height()) // 2, 0)
+    dialog.geometry(f"+{x}+{y}")
+    dialog.wait_window()
 
 
 I18N = {
@@ -131,8 +221,15 @@ I18N = {
         "menu_target": "Target: {value}",
         "menu_api": "API: {value}",
         "menu_status": "Status: {value}",
+        "menu_show_app": "Show app",
+        "menu_monitoring_start": "Start/Stop Toogle",
+        "menu_monitoring_stop": "Start/Stop Toogle",
         "menu_start_monitoring": "Start monitoring",
         "menu_stop_monitoring": "Stop monitoring",
+        "menu_start_monitoring_ready": "Start monitoring [Ready]",
+        "menu_start_monitoring_running": "Start monitoring [Running]",
+        "menu_stop_monitoring_ready": "Stop monitoring [Running]",
+        "menu_stop_monitoring_waiting": "Stop monitoring [Waiting]",
         "menu_choose_target": "Choose target process...",
         "menu_use_auto_detect": "Use auto-detect",
         "menu_options": "Options",
@@ -147,6 +244,23 @@ I18N = {
         "menu_donate": "Donate for ムKim",
         "menu_copyright": "Copyright",
         "menu_close": "Close",
+        "gui_window_title": "PingOverlay Control Center",
+        "gui_heading": "PingOverlay Control Center",
+        "gui_subheading": "Quick controls for monitoring and overlay display.",
+        "gui_language_frame": "Language",
+        "gui_monitoring_frame": "Monitoring",
+        "gui_status_label": "Status",
+        "gui_options_frame": "Overlay Options",
+        "gui_actions_frame": "Actions",
+        "gui_start_prompt_title": "Start monitoring",
+        "gui_start_prompt_body": "Choose what to do with the control window after monitoring starts.",
+        "gui_start_hide": "Hide to tray",
+        "gui_start_minimize": "Minimize window",
+        "gui_start_cancel": "Cancel",
+        "gui_close_prompt_title": "Close control panel",
+        "gui_close_prompt_body": "Choose what to do with PingOverlay.",
+        "gui_close_hide": "Hide to tray",
+        "gui_close_exit": "Close app",
         "overlay_waiting_lobby": "Waiting for lobby and stable connection...",
         "overlay_waiting_start": "Waiting for Start...",
         "overlay_waiting_game": "Waiting for game...",
@@ -199,8 +313,15 @@ I18N = {
         "menu_target": "Target: {value}",
         "menu_api": "API: {value}",
         "menu_status": "Trạng thái: {value}",
+        "menu_show_app": "Hiện ứng dụng",
+        "menu_monitoring_start": "Start/Stop Toogle",
+        "menu_monitoring_stop": "Start/Stop Toogle",
         "menu_start_monitoring": "Bắt đầu theo dõi",
         "menu_stop_monitoring": "Dừng theo dõi",
+        "menu_start_monitoring_ready": "Bắt đầu theo dõi [Sẵn sàng]",
+        "menu_start_monitoring_running": "Bắt đầu theo dõi [Đang chạy]",
+        "menu_stop_monitoring_ready": "Dừng theo dõi [Đang chạy]",
+        "menu_stop_monitoring_waiting": "Dừng theo dõi [Đang chờ]",
         "menu_choose_target": "Chọn process mục tiêu...",
         "menu_use_auto_detect": "Dùng auto-detect",
         "menu_options": "Tùy chọn",
@@ -215,6 +336,23 @@ I18N = {
         "menu_donate": "Donate for ムKim",
         "menu_copyright": "Bản quyền",
         "menu_close": "Đóng",
+        "gui_window_title": "Bảng điều khiển PingOverlay",
+        "gui_heading": "Bảng điều khiển PingOverlay",
+        "gui_subheading": "Điều khiển nhanh cho monitoring và hiển thị overlay.",
+        "gui_language_frame": "Ngôn ngữ",
+        "gui_monitoring_frame": "Monitoring",
+        "gui_status_label": "Trạng thái",
+        "gui_options_frame": "Tùy chọn Overlay",
+        "gui_actions_frame": "Hành động",
+        "gui_start_prompt_title": "Bắt đầu theo dõi",
+        "gui_start_prompt_body": "Chọn cách xử lý cửa sổ điều khiển sau khi bắt đầu monitoring.",
+        "gui_start_hide": "Ẩn xuống tray",
+        "gui_start_minimize": "Thu nhỏ cửa sổ",
+        "gui_start_cancel": "Hủy",
+        "gui_close_prompt_title": "Đóng bảng điều khiển",
+        "gui_close_prompt_body": "Chọn cách xử lý PingOverlay.",
+        "gui_close_hide": "Ẩn xuống tray",
+        "gui_close_exit": "Thoát ứng dụng",
         "overlay_waiting_lobby": "Đang chờ load lobby và ổn định kết nối...",
         "overlay_waiting_start": "Đang chờ Start...",
         "overlay_waiting_game": "Đang chờ game...",
@@ -302,6 +440,8 @@ class AppState:
         self.hotkey_label: str = "(none)"
         self.monitoring_enabled: bool = False
         self.update_in_progress: bool = False
+        self.session_token: int = 0
+        self.control_panel = None
 
 
 def session_status_text(app: AppState) -> str:
@@ -444,6 +584,337 @@ class OverlayOptions:
             "show_api": self.show_api,
         }
         app_config.save(self._cfg)
+
+
+class ControlPanel:
+    def __init__(self, master, app: AppState, options: OverlayOptions, actions: dict):
+        self.app = app
+        self.options = options
+        self.actions = actions
+        self._syncing = False
+        self._option_keys = {
+            "show_ping": "menu_show_ping",
+            "show_loss": "menu_show_loss",
+            "show_jitter": "menu_show_jitter",
+            "show_minmax": "menu_show_minmax",
+            "show_fps": "menu_show_fps",
+            "show_low1": "menu_show_low1",
+            "show_frametime": "menu_show_frametime",
+            "show_ram": "menu_show_ram",
+            "show_vram": "menu_show_vram",
+            "show_api": "menu_show_api",
+        }
+
+        self.window = tk.Toplevel(master)
+        self.window.geometry("480x520")
+        self.window.minsize(440, 500)
+        self.window.protocol("WM_DELETE_WINDOW", self._on_close_requested)
+        _apply_window_icon(self.window)
+
+        root = ttk.Frame(self.window, padding=14)
+        root.pack(fill="both", expand=True)
+
+        self.heading_label = ttk.Label(root, font=("Segoe UI", 15, "bold"))
+        self.heading_label.pack(anchor="w")
+        self.subheading_label = ttk.Label(root, justify="left")
+        self.subheading_label.pack(anchor="w", pady=(4, 12))
+
+        top_row = ttk.Frame(root)
+        top_row.pack(fill="x")
+
+        self.language_frame = ttk.LabelFrame(top_row, padding=10)
+        self.language_frame.pack(side="left", fill="x", expand=True, padx=(0, 8))
+        self.language_var = tk.StringVar(value=lang_code(app))
+        self.lang_en = ttk.Radiobutton(
+            self.language_frame,
+            value="en",
+            variable=self.language_var,
+            command=self._on_language_change,
+        )
+        self.lang_vi = ttk.Radiobutton(
+            self.language_frame,
+            value="vi",
+            variable=self.language_var,
+            command=self._on_language_change,
+        )
+        self.lang_en.pack(side="left", padx=(0, 12))
+        self.lang_vi.pack(side="left")
+
+        self.monitoring_frame = ttk.LabelFrame(top_row, padding=10)
+        self.monitoring_frame.pack(side="left", fill="x", expand=True)
+        self.status_caption = ttk.Label(self.monitoring_frame)
+        self.status_caption.grid(row=0, column=0, sticky="w")
+        self.status_value = ttk.Label(self.monitoring_frame, font=("Segoe UI", 10, "bold"))
+        self.status_value.grid(row=1, column=0, sticky="w", pady=(2, 8))
+
+        buttons = ttk.Frame(self.monitoring_frame)
+        buttons.grid(row=2, column=0, sticky="ew")
+        buttons.columnconfigure(0, weight=1)
+        buttons.columnconfigure(1, weight=1)
+        self.start_button = ttk.Button(buttons, command=self._on_start_clicked)
+        self.start_button.grid(row=0, column=0, sticky="ew", padx=(0, 4))
+        self.stop_button = ttk.Button(buttons, command=self._on_stop_clicked)
+        self.stop_button.grid(row=0, column=1, sticky="ew", padx=(4, 0))
+
+        self.options_frame = ttk.LabelFrame(root, padding=10)
+        self.options_frame.pack(fill="both", expand=True, pady=(12, 12))
+        self.option_vars: dict[str, tk.BooleanVar] = {}
+        self.option_buttons: dict[str, ttk.Checkbutton] = {}
+        option_order = [
+            "show_ping", "show_loss",
+            "show_jitter", "show_minmax",
+            "show_fps", "show_low1",
+            "show_frametime", "show_ram",
+            "show_vram", "show_api",
+        ]
+        for idx, attr in enumerate(option_order):
+            var = tk.BooleanVar(value=bool(getattr(self.options, attr)))
+            btn = ttk.Checkbutton(
+                self.options_frame,
+                variable=var,
+                command=lambda name=attr: self._on_option_toggle(name),
+            )
+            row = idx // 2
+            col = idx % 2
+            btn.grid(row=row, column=col, sticky="w", padx=(0, 16), pady=4)
+            self.option_vars[attr] = var
+            self.option_buttons[attr] = btn
+        self.options_frame.columnconfigure(0, weight=1)
+        self.options_frame.columnconfigure(1, weight=1)
+
+        self.actions_frame = ttk.LabelFrame(root, padding=10)
+        self.actions_frame.pack(fill="x")
+        self.donate_button = ttk.Label(self.actions_frame, anchor="center")
+        self.donate_button.pack(fill="x")
+        self.donate_button.bind("<Button-1>", self._on_donate_clicked)
+        self._donate_photo = _load_ui_photo(DONATE_PNG, 220, 80)
+
+        self.refresh()
+        self.window.after(0, self._configure_native_window)
+
+    def show(self) -> None:
+        try:
+            self.window.deiconify()
+            self.window.state("normal")
+        except Exception:
+            pass
+        self._show_native(SW_RESTORE)
+        self.window.lift()
+        try:
+            self.window.focus_force()
+        except Exception:
+            pass
+
+    def hide(self) -> None:
+        try:
+            self.window.withdraw()
+        except Exception:
+            pass
+        self._show_native(SW_HIDE)
+
+    def minimize(self) -> None:
+        try:
+            self.window.deiconify()
+            self.window.state("iconic")
+        except Exception:
+            pass
+        self._show_native(SW_SHOWMINIMIZED)
+
+    def refresh(self) -> None:
+        self._syncing = True
+        self.language_var.set(lang_code(self.app))
+        self.window.title(tr(self.app, "gui_window_title"))
+        self.heading_label.configure(text=tr(self.app, "gui_heading"))
+        self.subheading_label.configure(text=tr(self.app, "gui_subheading"))
+        self.language_frame.configure(text=tr(self.app, "gui_language_frame"))
+        self.monitoring_frame.configure(text=tr(self.app, "gui_monitoring_frame"))
+        self.status_caption.configure(text=tr(self.app, "gui_status_label"))
+        self.status_value.configure(text=session_status_text(self.app))
+        self.start_button.configure(
+            text=tr(self.app, "menu_start_monitoring"),
+            state=("disabled" if self.app.monitoring_enabled else "normal"),
+        )
+        self.stop_button.configure(
+            text=tr(self.app, "menu_stop_monitoring"),
+            state=("normal" if self.app.monitoring_enabled else "disabled"),
+        )
+        self.options_frame.configure(text=tr(self.app, "gui_options_frame"))
+        self.actions_frame.configure(text=tr(self.app, "gui_actions_frame"))
+        self.lang_en.configure(text=tr(self.app, "menu_language_en"))
+        self.lang_vi.configure(text=tr(self.app, "menu_language_vi"))
+        if self._donate_photo is not None:
+            self.donate_button.configure(image=self._donate_photo, text="", cursor="hand2")
+        else:
+            self.donate_button.configure(text=tr(self.app, "menu_donate"), image="", cursor="hand2")
+
+        for attr, var in self.option_vars.items():
+            var.set(bool(getattr(self.options, attr)))
+            self.option_buttons[attr].configure(text=tr(self.app, self._option_keys[attr]))
+        self._syncing = False
+
+    def _on_language_change(self) -> None:
+        if self._syncing:
+            return
+        self.actions["set_language"](self.language_var.get())
+
+    def _on_option_toggle(self, attr: str) -> None:
+        if self._syncing:
+            return
+        self.actions["toggle_option"](attr)
+
+    def _on_start_clicked(self) -> None:
+        choice = self._prompt_start_behavior()
+        if choice is None:
+            return
+        if choice == "tray":
+            self.hide()
+        else:
+            self.minimize()
+        self.window.after_idle(self.actions["start_monitoring"])
+        self.window.after(50, self.refresh)
+
+    def _on_stop_clicked(self) -> None:
+        self.start_button.configure(state="disabled")
+        self.stop_button.configure(state="disabled")
+        self.window.after_idle(self.actions["stop_monitoring"])
+        self.window.after(50, self.refresh)
+        self.window.after(200, self.refresh)
+
+    def _on_donate_clicked(self, _event=None) -> None:
+        self.actions["donate"]()
+
+    def _on_donate_clicked(self) -> None:
+        self.actions["donate"]()
+
+    def _on_close_requested(self) -> None:
+        choice = self._prompt_close_behavior()
+        if choice == "tray":
+            self.hide()
+        elif choice == "close":
+            self.actions["quit_app"]()
+
+    def _prompt_start_behavior(self) -> str | None:
+        return self._prompt_choice_dialog(
+            tr(self.app, "gui_start_prompt_title"),
+            tr(self.app, "gui_start_prompt_body"),
+            [
+                (tr(self.app, "gui_start_hide"), "tray"),
+                (tr(self.app, "gui_start_minimize"), "minimize"),
+                (tr(self.app, "gui_start_cancel"), None),
+            ],
+        )
+
+    def _prompt_close_behavior(self) -> str | None:
+        return self._prompt_choice_dialog(
+            tr(self.app, "gui_close_prompt_title"),
+            tr(self.app, "gui_close_prompt_body"),
+            [
+                (tr(self.app, "gui_close_hide"), "tray"),
+                (tr(self.app, "gui_close_exit"), "close"),
+                (tr(self.app, "gui_start_cancel"), None),
+            ],
+        )
+
+    def _prompt_choice_dialog(self, title: str, body: str,
+                              choices: list[tuple[str, str | None]]) -> str | None:
+        result = {"value": None}
+        dialog = tk.Toplevel(self.window)
+        dialog.title(title)
+        dialog.transient(self.window)
+        dialog.resizable(False, False)
+        dialog.grab_set()
+        dialog.protocol("WM_DELETE_WINDOW", lambda: _close(None))
+
+        container = ttk.Frame(dialog, padding=14)
+        container.pack(fill="both", expand=True)
+
+        ttk.Label(
+            container,
+            text=body,
+            justify="left",
+            wraplength=320,
+        ).pack(anchor="w")
+
+        buttons = ttk.Frame(container)
+        buttons.pack(fill="x", pady=(14, 0))
+        for idx, _ in enumerate(choices):
+            buttons.columnconfigure(idx, weight=1)
+
+        def _close(value: str | None) -> None:
+            result["value"] = value
+            try:
+                dialog.grab_release()
+            except Exception:
+                pass
+            dialog.destroy()
+
+        last = len(choices) - 1
+        for idx, (label, value) in enumerate(choices):
+            padx = (0, 4) if idx == 0 else ((4, 0) if idx == last else 4)
+            ttk.Button(
+                buttons,
+                text=label,
+                command=lambda v=value: _close(v),
+            ).grid(row=0, column=idx, sticky="ew", padx=padx)
+
+        dialog.update_idletasks()
+        x = self.window.winfo_rootx() + max((self.window.winfo_width() - dialog.winfo_width()) // 2, 0)
+        y = self.window.winfo_rooty() + max((self.window.winfo_height() - dialog.winfo_height()) // 2, 0)
+        dialog.geometry(f"+{x}+{y}")
+        dialog.wait_window()
+        return result["value"]
+
+    def _hwnd(self) -> int:
+        try:
+            self.window.update_idletasks()
+            hwnd = int(self.window.winfo_id())
+            parent = int(ctypes.windll.user32.GetParent(hwnd))
+            return parent or hwnd
+        except Exception:
+            return 0
+
+    def _configure_native_window(self) -> None:
+        hwnd = self._hwnd()
+        if not hwnd:
+            return
+        try:
+            user32 = ctypes.windll.user32
+            user32.GetWindowLongW.restype = ctypes.c_long
+            style = user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
+            style = (style | WS_EX_APPWINDOW) & ~WS_EX_TOOLWINDOW
+            user32.SetWindowLongW(hwnd, GWL_EXSTYLE, style)
+            user32.SetWindowPos(
+                hwnd,
+                0,
+                0,
+                0,
+                0,
+                0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED,
+            )
+        except Exception:
+            pass
+
+    def _show_native(self, mode: int) -> None:
+        hwnd = self._hwnd()
+        if not hwnd:
+            return
+        try:
+            ctypes.windll.user32.ShowWindow(hwnd, mode)
+        except Exception:
+            pass
+
+
+def refresh_control_panel(app: AppState) -> None:
+    cp = getattr(app, "control_panel", None)
+    if cp is not None:
+        try:
+            cp.window.after(0, cp.refresh)
+        except Exception:
+            try:
+                cp.refresh()
+            except Exception:
+                pass
 
 
 # ---------- Auto-detect ----------
@@ -780,7 +1251,7 @@ def pick_city(cities: list[str]) -> str | None:
 
 # ---------- Tray ----------
 def make_tray_icon(overlay: Overlay, options: OverlayOptions,
-                   app: AppState) -> pystray.Icon:
+                   app: AppState):
     def _display_proc_name() -> str:
         return tr(app, "process_waiting") if app.proc_name == "(waiting)" else app.proc_name
 
@@ -794,29 +1265,66 @@ def make_tray_icon(overlay: Overlay, options: OverlayOptions,
         return _label
 
     def on_click(icon, item=None):
-        overlay.root.after(0, overlay.toggle)
+        overlay.root.after(0, _show_control_panel)
 
-    def on_quit(icon, item=None):
-        def _shutdown():
-            overlay.close()
+    def _shutdown_app() -> None:
+        cp = getattr(app, "control_panel", None)
+        if cp is not None:
             try:
-                icon.stop()
+                cp.window.destroy()
             except Exception:
                 pass
-            # Force-exit: khi chạy onefile --windowed, một số thread backend
-            # (pystray Win32, PresentMon, ETW, hotkey) không dọn kịp và
-            # mainloop có thể không thoát. Dùng os._exit để chắc chắn.
-            os._exit(0)
-        overlay.root.after(0, _shutdown)
+        overlay.close()
+        try:
+            tray.stop()
+        except Exception:
+            pass
+        # Force-exit: khi chạy onefile --windowed, một số thread backend
+        # (pystray Win32, PresentMon, ETW, hotkey) không dọn kịp và
+        # mainloop có thể không thoát. Dùng os._exit để chắc chắn.
+        os._exit(0)
+
+    def on_quit(icon, item=None):
+        overlay.root.after(0, _shutdown_app)
+
+    def _show_control_panel() -> None:
+        cp = getattr(app, "control_panel", None)
+        if cp is not None:
+            cp.show()
+
+    def _refresh_ui() -> None:
+        refresh_control_panel(app)
+        def _refresh_tray_once() -> None:
+            try:
+                was_visible = bool(getattr(tray, "visible", False))
+                if was_visible:
+                    tray.visible = False
+                tray.menu = _build_menu()
+                try:
+                    tray.title = f"PingOverlay ({session_status_text(app)})"
+                except Exception:
+                    pass
+                if was_visible:
+                    tray.visible = True
+                else:
+                    tray.update_menu()
+            except Exception:
+                pass
+        _refresh_tray_once()
+        for delay_ms in (75, 200, 500):
+            overlay.root.after(delay_ms, _refresh_tray_once)
+
+    def _toggle_option(attr: str) -> None:
+        setattr(options, attr, not getattr(options, attr))
+        try:
+            options.persist()
+        except Exception as e:
+            print(f"[tray] persist options error: {e}")
+        _refresh_ui()
 
     def make_toggle(attr: str):
         def _f(icon, item):
-            setattr(options, attr, not getattr(options, attr))
-            try:
-                options.persist()
-            except Exception as e:
-                print(f"[tray] persist options error: {e}")
-            icon.update_menu()
+            _toggle_option(attr)
         return _f
 
     def on_toggle_autostart(icon, item):
@@ -828,7 +1336,7 @@ def make_tray_icon(overlay: Overlay, options: OverlayOptions,
             app_config.save(app.cfg)
         else:
             print("[tray] autostart toggle failed; state unchanged")
-        icon.update_menu()
+        _refresh_ui()
 
     def on_reset_position(icon, item):
         ov = app.cfg.setdefault("overlay", {})
@@ -845,20 +1353,15 @@ def make_tray_icon(overlay: Overlay, options: OverlayOptions,
         upd = app.cfg.setdefault("update", {})
         upd["check_on_startup"] = not bool(upd.get("check_on_startup", True))
         app_config.save(app.cfg)
-        try:
-            icon.update_menu()
-        except Exception:
-            pass
+        _refresh_ui()
+
+    def _set_language(lang: str):
+        app.cfg["language"] = lang
+        app_config.save(app.cfg)
+        _refresh_ui()
 
     def on_set_language(lang: str):
-        def _set():
-            app.cfg["language"] = lang
-            app_config.save(app.cfg)
-            try:
-                tray.update_menu()
-            except Exception:
-                pass
-        overlay.root.after(0, _set)
+        overlay.root.after(0, lambda: _set_language(lang))
 
     def on_check_updates(icon, item=None):
         overlay.root.after(
@@ -893,10 +1396,7 @@ def make_tray_icon(overlay: Overlay, options: OverlayOptions,
                 pid, proc_name = detected
                 start_session(app, overlay, tray, pid, proc_name)
             print("[tray] monitoring enabled; waiting for game detect")
-        try:
-            tray.update_menu()
-        except Exception:
-            pass
+        _refresh_ui()
 
     def _apply_target_process(target_name: str | None,
                               selected: tuple[int, str] | None = None) -> None:
@@ -917,10 +1417,7 @@ def make_tray_icon(overlay: Overlay, options: OverlayOptions,
                 pid, proc_name = detected
                 start_session(app, overlay, tray, pid, proc_name)
 
-        try:
-            tray.update_menu()
-        except Exception:
-            pass
+        _refresh_ui()
 
         if normalized:
             print(f"[tray] target process pinned: {normalized}")
@@ -928,10 +1425,22 @@ def make_tray_icon(overlay: Overlay, options: OverlayOptions,
             print("[tray] target process set to auto-detect")
 
     def on_start_monitoring(icon, item=None):
+        if app.monitoring_enabled:
+            _refresh_ui()
+            return
         overlay.root.after(0, lambda: _set_monitoring_enabled(True))
 
     def on_stop_monitoring(icon, item=None):
+        if not app.monitoring_enabled:
+            _refresh_ui()
+            return
         overlay.root.after(0, lambda: _set_monitoring_enabled(False))
+
+    def on_toggle_monitoring(icon, item=None):
+        if app.monitoring_enabled:
+            on_stop_monitoring(icon, item)
+        else:
+            on_start_monitoring(icon, item)
 
     def on_use_auto_detect(icon, item=None):
         overlay.root.after(0, lambda: _apply_target_process(None))
@@ -949,16 +1458,7 @@ def make_tray_icon(overlay: Overlay, options: OverlayOptions,
 
     def on_copyright(icon, item):
         def show():
-            messagebox.showinfo(
-                tr(app, "copyright_title"),
-                tr(
-                    app,
-                    "copyright_body",
-                    version=__version__,
-                    developer=DEVELOPER_NAME,
-                    year=COPYRIGHT_YEAR,
-                ),
-            )
+            _show_copyright_dialog(overlay.root, app)
         overlay.root.after(0, show)
 
     def on_donate(icon, item=None):
@@ -967,79 +1467,117 @@ def make_tray_icon(overlay: Overlay, options: OverlayOptions,
         except Exception as e:
             print(f"[tray] donate open error: {e}")
 
-    options_menu = pystray.Menu(
-        pystray.MenuItem(menu_text("menu_show_ping"), make_toggle("show_ping"),
-                         checked=lambda i: options.show_ping),
-        pystray.MenuItem(menu_text("menu_show_loss"), make_toggle("show_loss"),
-                         checked=lambda i: options.show_loss),
-        pystray.MenuItem(menu_text("menu_show_jitter"), make_toggle("show_jitter"),
-                         checked=lambda i: options.show_jitter),
-        pystray.MenuItem(menu_text("menu_show_minmax"), make_toggle("show_minmax"),
-                         checked=lambda i: options.show_minmax),
-        pystray.Menu.SEPARATOR,
-        pystray.MenuItem(menu_text("menu_show_fps"), make_toggle("show_fps"),
-                         checked=lambda i: options.show_fps),
-        pystray.MenuItem(menu_text("menu_show_low1"), make_toggle("show_low1"),
-                         checked=lambda i: options.show_low1),
-        pystray.MenuItem(menu_text("menu_show_frametime"), make_toggle("show_frametime"),
-                         checked=lambda i: options.show_frametime),
-        pystray.Menu.SEPARATOR,
-        pystray.MenuItem(menu_text("menu_show_ram"), make_toggle("show_ram"),
-                         checked=lambda i: options.show_ram),
-        pystray.MenuItem(menu_text("menu_show_vram"), make_toggle("show_vram"),
-                         checked=lambda i: options.show_vram),
-        pystray.MenuItem(menu_text("menu_show_api"), make_toggle("show_api"),
-                         checked=lambda i: options.show_api),
-    )
+    def _build_options_menu():
+        return pystray.Menu(
+            pystray.MenuItem(menu_text("menu_show_ping"), make_toggle("show_ping"),
+                             checked=lambda i: options.show_ping),
+            pystray.MenuItem(menu_text("menu_show_loss"), make_toggle("show_loss"),
+                             checked=lambda i: options.show_loss),
+            pystray.MenuItem(menu_text("menu_show_jitter"), make_toggle("show_jitter"),
+                             checked=lambda i: options.show_jitter),
+            pystray.MenuItem(menu_text("menu_show_minmax"), make_toggle("show_minmax"),
+                             checked=lambda i: options.show_minmax),
+            pystray.Menu.SEPARATOR,
+            pystray.MenuItem(menu_text("menu_show_fps"), make_toggle("show_fps"),
+                             checked=lambda i: options.show_fps),
+            pystray.MenuItem(menu_text("menu_show_low1"), make_toggle("show_low1"),
+                             checked=lambda i: options.show_low1),
+            pystray.MenuItem(menu_text("menu_show_frametime"), make_toggle("show_frametime"),
+                             checked=lambda i: options.show_frametime),
+            pystray.Menu.SEPARATOR,
+            pystray.MenuItem(menu_text("menu_show_ram"), make_toggle("show_ram"),
+                             checked=lambda i: options.show_ram),
+            pystray.MenuItem(menu_text("menu_show_vram"), make_toggle("show_vram"),
+                             checked=lambda i: options.show_vram),
+            pystray.MenuItem(menu_text("menu_show_api"), make_toggle("show_api"),
+                             checked=lambda i: options.show_api),
+        )
 
-    language_menu = pystray.Menu(
-        pystray.MenuItem(
-            menu_text("menu_language_en"),
-            lambda icon, item: on_set_language("en"),
-            checked=lambda i: lang_code(app) == "en",
-        ),
-        pystray.MenuItem(
-            menu_text("menu_language_vi"),
-            lambda icon, item: on_set_language("vi"),
-            checked=lambda i: lang_code(app) == "vi",
-        ),
-    )
+    def _build_language_menu():
+        return pystray.Menu(
+            pystray.MenuItem(
+                menu_text("menu_language_en"),
+                lambda icon, item: on_set_language("en"),
+                checked=lambda i: lang_code(app) == "en",
+            ),
+            pystray.MenuItem(
+                menu_text("menu_language_vi"),
+                lambda icon, item: on_set_language("vi"),
+                checked=lambda i: lang_code(app) == "vi",
+            ),
+        )
 
-    menu = pystray.Menu(
-        pystray.MenuItem(menu_text("menu_process", value=_display_proc_name), None, enabled=False),
-        pystray.MenuItem(menu_text("menu_target", value=lambda: app.cfg.get('target_process') or tr(app, "target_auto")),
-                         None, enabled=False),
-        pystray.MenuItem(menu_text("menu_api", value=lambda: app.api), None, enabled=False),
-        pystray.MenuItem(menu_text("menu_status", value=lambda: session_status_text(app)),
-                         None, enabled=False),
-        pystray.Menu.SEPARATOR,
-        pystray.MenuItem(menu_text("menu_start_monitoring"), on_start_monitoring,
-                         enabled=lambda i: not app.monitoring_enabled),
-        pystray.MenuItem(menu_text("menu_stop_monitoring"), on_stop_monitoring,
-                         enabled=lambda i: app.monitoring_enabled),
-        pystray.Menu.SEPARATOR,
-        pystray.MenuItem(menu_text("menu_choose_target"), on_choose_target),
-        pystray.MenuItem(menu_text("menu_use_auto_detect"), on_use_auto_detect,
-                         checked=lambda i: not (app.cfg.get("target_process") or "").strip()),
-        pystray.Menu.SEPARATOR,
-        pystray.MenuItem(menu_text("menu_options"), options_menu),
-        pystray.MenuItem(menu_text("menu_check_updates"), on_check_updates,
-                         enabled=lambda i: not app.update_in_progress),
-        pystray.MenuItem(menu_text("menu_auto_update"), on_toggle_auto_update,
-                         checked=lambda i: bool((app.cfg.get("update") or {}).get("check_on_startup", True))),
-        pystray.MenuItem(menu_text("menu_start_with_windows"), on_toggle_autostart,
-                         checked=lambda i: bool(app.cfg.get("autostart", False))),
-        pystray.MenuItem(menu_text("menu_reset_position"), on_reset_position),
-        pystray.MenuItem(menu_text("menu_hotkey", value=lambda: app.hotkey_label), None, enabled=False),
-        pystray.MenuItem(menu_text("menu_language"), language_menu),
-        pystray.MenuItem(menu_text("menu_donate"), on_donate),
-        pystray.MenuItem(menu_text("menu_copyright"), on_copyright),
-        pystray.Menu.SEPARATOR,
-        pystray.MenuItem(menu_text("menu_close"), on_quit),
-    )
-    icon = pystray.Icon("PingOverlay", ICON_RED, "PingOverlay (waiting)", menu)
+    def _build_menu():
+        monitoring_key = (
+            "menu_monitoring_stop"
+            if app.monitoring_enabled else
+            "menu_monitoring_start"
+        )
+        return pystray.Menu(
+            pystray.MenuItem(menu_text("menu_process", value=_display_proc_name), None, enabled=False),
+            pystray.MenuItem(menu_text("menu_target", value=lambda: app.cfg.get('target_process') or tr(app, "target_auto")),
+                             None, enabled=False),
+            pystray.MenuItem(menu_text("menu_api", value=lambda: app.api), None, enabled=False),
+            pystray.MenuItem(menu_text("menu_status", value=lambda: session_status_text(app)),
+                             None, enabled=False),
+            pystray.Menu.SEPARATOR,
+            pystray.MenuItem(
+                menu_text("menu_show_app"),
+                lambda icon, item: overlay.root.after(0, _show_control_panel),
+                default=True,
+            ),
+            pystray.MenuItem(menu_text(monitoring_key), on_toggle_monitoring),
+            pystray.Menu.SEPARATOR,
+            pystray.MenuItem(menu_text("menu_choose_target"), on_choose_target),
+            pystray.MenuItem(menu_text("menu_use_auto_detect"), on_use_auto_detect,
+                             checked=lambda i: not (app.cfg.get("target_process") or "").strip()),
+            pystray.Menu.SEPARATOR,
+            pystray.MenuItem(menu_text("menu_options"), _build_options_menu()),
+            pystray.MenuItem(menu_text("menu_check_updates"), on_check_updates,
+                             enabled=lambda i: not app.update_in_progress),
+            pystray.MenuItem(menu_text("menu_auto_update"), on_toggle_auto_update,
+                             checked=lambda i: bool((app.cfg.get("update") or {}).get("check_on_startup", True))),
+            pystray.MenuItem(menu_text("menu_start_with_windows"), on_toggle_autostart,
+                             checked=lambda i: bool(app.cfg.get("autostart", False))),
+            pystray.MenuItem(menu_text("menu_reset_position"), on_reset_position),
+            pystray.MenuItem(menu_text("menu_hotkey", value=lambda: app.hotkey_label), None, enabled=False),
+            pystray.MenuItem(menu_text("menu_language"), _build_language_menu()),
+            pystray.MenuItem(menu_text("menu_donate"), on_donate),
+            pystray.MenuItem(menu_text("menu_copyright"), on_copyright),
+            pystray.Menu.SEPARATOR,
+            pystray.MenuItem(menu_text("menu_close"), on_quit),
+        )
+
+    icon = pystray.Icon("PingOverlay", ICON_RED, "PingOverlay (waiting)", _build_menu())
+    try:
+        import pystray._util.win32 as tray_win32
+
+        original_on_notify = icon._on_notify
+
+        def _patched_on_notify(self, wparam, lparam):
+            if lparam == tray_win32.WM_RBUTTONUP:
+                try:
+                    self.menu = _build_menu()
+                    self.title = f"PingOverlay ({session_status_text(app)})"
+                except Exception:
+                    pass
+            return original_on_notify(wparam, lparam)
+
+        icon._on_notify = types.MethodType(_patched_on_notify, icon)
+    except Exception:
+        pass
     icon.default_action = on_click
-    return icon
+    actions = {
+        "toggle_option": _toggle_option,
+        "set_language": _set_language,
+        "start_monitoring": lambda: _set_monitoring_enabled(True),
+        "stop_monitoring": lambda: _set_monitoring_enabled(False),
+        "donate": lambda: on_donate(None),
+        "show_control_panel": _show_control_panel,
+        "quit_app": lambda: overlay.root.after(0, _shutdown_app),
+        "refresh_ui": _refresh_ui,
+    }
+    return icon, actions
 
 
 # ---------- Loops ----------
@@ -1298,6 +1836,27 @@ def display_loop(overlay: Overlay, app: AppState, options: OverlayOptions):
 # ---------- Session lifecycle ----------
 def start_session(app: AppState, overlay: Overlay, tray: pystray.Icon,
                   pid: int, proc_name: str) -> None:
+    # Luôn bắt đầu từ state rỗng để lần Start sau Stop không tái dùng
+    # monitor/snapshot của process cũ.
+    if app.fps_mon:
+        try:
+            app.fps_mon.stop()
+        except Exception:
+            pass
+        app.fps_mon = None
+    if app.mem_mon:
+        try:
+            app.mem_mon.stop()
+        except Exception:
+            pass
+        app.mem_mon = None
+    if app.ping_state:
+        try:
+            app.ping_state.stop()
+        except Exception:
+            pass
+        app.ping_state = None
+
     fps_mon = FpsMonitor(pid)
     if not fps_mon.start():
         print(f"[session] FPS monitor disabled: {fps_mon.error}")
@@ -1318,8 +1877,11 @@ def start_session(app: AppState, overlay: Overlay, tray: pystray.Icon,
     app.active = True
     app.warming = True
     app.warmup_stop = threading.Event()
+    app.session_token += 1
+    session_token = app.session_token
 
     overlay.root.after(0, overlay.show)
+    refresh_control_panel(app)
     try:
         tray.title = f"PingOverlay — {proc_name} (warming)"
         tray.update_menu()
@@ -1337,10 +1899,14 @@ def start_session(app: AppState, overlay: Overlay, tray: pystray.Icon,
         assert stop_ev is not None
         attempt = 0
         lobby_ips: list[str] = []
-        while not stop_ev.is_set() and app.pid == pid:
+        while (
+            not stop_ev.is_set()
+            and app.pid == pid
+            and app.session_token == session_token
+        ):
             attempt += 1
             ips = wait_for_lobby(pid, stop_ev)
-            if stop_ev.is_set() or app.pid != pid:
+            if stop_ev.is_set() or app.pid != pid or app.session_token != session_token:
                 return
             if not ips:
                 ips = persistent_remote_ips(pid) or []
@@ -1356,8 +1922,11 @@ def start_session(app: AppState, overlay: Overlay, tray: pystray.Icon,
                 lobby_ips = ips
                 break
             # Chưa có IP -> báo trạng thái rõ, nghỉ rồi retry
+            if app.session_token != session_token:
+                return
             app.warming = False
             app.city = "(waiting net)"
+            refresh_control_panel(app)
             try:
                 tray.title = f"PingOverlay — {proc_name} (waiting net)"
                 tray.update_menu()
@@ -1368,17 +1937,23 @@ def start_session(app: AppState, overlay: Overlay, tray: pystray.Icon,
             if stop_ev.wait(timeout=10.0):
                 return
 
-        if stop_ev.is_set() or app.pid != pid or not lobby_ips:
+        if (
+            stop_ev.is_set()
+            or app.pid != pid
+            or app.session_token != session_token
+            or not lobby_ips
+        ):
             return
 
         city = pick_nearest_city_from_ips(lobby_ips) or "(unknown)"
-        if stop_ev.is_set() or app.pid != pid:
+        if stop_ev.is_set() or app.pid != pid or app.session_token != session_token:
             return
         app.city = city
         ping_state = PingState(pid, city)
         app.ping_state = ping_state
         app.warming = False
         threading.Thread(target=ping_state.run, daemon=True).start()
+        refresh_control_panel(app)
         try:
             tray.title = f"PingOverlay — {proc_name}"
             tray.update_menu()
@@ -1392,6 +1967,7 @@ def start_session(app: AppState, overlay: Overlay, tray: pystray.Icon,
 def stop_session(app: AppState, overlay: Overlay, tray: pystray.Icon) -> None:
     if not app.active and app.pid is None:
         return
+    app.session_token += 1
     if app.warmup_stop:
         app.warmup_stop.set()
     if app.ping_state:
@@ -1413,6 +1989,7 @@ def stop_session(app: AppState, overlay: Overlay, tray: pystray.Icon) -> None:
     app.warmup_stop = None
 
     overlay.root.after(0, overlay.hide)
+    refresh_control_panel(app)
     try:
         tray.icon = ICON_RED
         tray.title = f"PingOverlay ({session_status_text(app)})"
@@ -1492,11 +2069,13 @@ def main():
     overlay.set_text(tr(app, "overlay_waiting_start"), color="#888888")
     overlay.hide()  # khởi động ở trạng thái ẩn; supervisor sẽ bật khi có game
 
-    tray = make_tray_icon(overlay, options, app)
+    tray, actions = make_tray_icon(overlay, options, app)
     try:
         tray.title = f"PingOverlay ({session_status_text(app)})"
     except Exception:
         pass
+    app.control_panel = ControlPanel(overlay.root, app, options, actions)
+    app.control_panel.show()
     threading.Thread(target=tray.run, daemon=True).start()
 
     # Global hotkey toggle overlay
@@ -1516,6 +2095,7 @@ def main():
         tray.update_menu()
     except Exception:
         pass
+    refresh_control_panel(app)
 
     update_cfg = cfg.get("update") or {}
     if bool(update_cfg.get("enabled", True)) and bool(update_cfg.get("check_on_startup", True)):

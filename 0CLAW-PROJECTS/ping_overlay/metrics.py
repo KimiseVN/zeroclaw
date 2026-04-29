@@ -974,6 +974,11 @@ class MemoryMonitor:
 
     def stop(self) -> None:
         self._stop = True
+        if self._thread and self._thread.is_alive():
+            try:
+                self._thread.join(timeout=max(1.5, self.poll_sec + 0.5))
+            except Exception:
+                pass
         try:
             self._vram.close()
         except Exception:
@@ -982,6 +987,13 @@ class MemoryMonitor:
             self._adapter_vram.close()
         except Exception:
             pass
+        self._proc = None
+        with self._lock:
+            self._snap = {
+                "ram_proc_b": None, "ram_total_b": None,
+                "vram_proc_b": None, "vram_total_b": None,
+                "vram_gpu_b": None,
+            }
 
 
 # ---------- Format helpers ----------

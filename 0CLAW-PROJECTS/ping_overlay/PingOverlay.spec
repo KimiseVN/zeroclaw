@@ -7,6 +7,7 @@ hiddenimports = ['config', 'hotkey', 'autostart', 'metrics',
                  'app_version',
                  'net_utils', 'overlay', 'window_utils', 'fps']
 datas += [('bin\\PresentMon.exe', 'bin')]
+datas += [('icon.png', '.'), ('donate-pp.png', '.')]
 tmp_ret = collect_all('pystray')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('PIL')

@@ -239,3 +239,23 @@ class FpsMonitor:
                 self._proc.terminate()
             except Exception:
                 pass
+            try:
+                self._proc.wait(timeout=1.5)
+            except Exception:
+                try:
+                    self._proc.kill()
+                except Exception:
+                    pass
+                try:
+                    self._proc.wait(timeout=1.0)
+                except Exception:
+                    pass
+        if self._thread and self._thread.is_alive():
+            try:
+                self._thread.join(timeout=1.0)
+            except Exception:
+                pass
+        with self._samples_lock:
+            self._samples.clear()
+        self._proc = None
+        self._thread = None
