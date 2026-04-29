@@ -93,6 +93,157 @@ DONATE_URL = "https://www.paypal.com/donate/?hosted_button_id=5F4PKX7KSHDYN"
 SUPERVISOR_MS = 2000    # nhịp kiểm tra process sống/chết + auto-detect game mới
 
 
+I18N = {
+    "en": {
+        "status_waiting_start": "Waiting for Start",
+        "status_waiting_lobby": "Waiting for lobby",
+        "status_active": "Active",
+        "status_waiting_game": "Waiting for game",
+        "update_title": "Update",
+        "update_exe_only": "Auto-update is only supported when running the packaged PingOverlay.exe build.",
+        "update_latest": "You are already on the latest version ({version}).",
+        "update_available_title": "Update available",
+        "update_available_body": "A new version {version} is available.\n\nYou are running {current}.\nThe app will download and restart to update.\n\nUpdate now?",
+        "update_installing": "Updating to {version}. The app will restart automatically.",
+        "update_error": "Could not update:\n{error}",
+        "pick_process_title": "Choose game process",
+        "pick_process_desc": "Choose the process that owns the game window. The list is ranked by 3D API and network signals.",
+        "pick_process_none": "No process with a large enough window was found for overlay attach.\nOpen the game first and try again.",
+        "button_ok": "OK",
+        "button_cancel": "Cancel",
+        "pick_city_title": "Choose server (city)",
+        "pick_city_none": "No city could be scanned from this process.\nThe process may not have any outbound connection yet.",
+        "button_close": "Close",
+        "pick_city_label": "Detected server cities:",
+        "copyright_title": "Copyright",
+        "copyright_body": "PingOverlay\n\nVersion {version}\nDeveloped by {developer}\n© {year} {developer}. All rights reserved.\n\nReal-time Ping / Packet Loss / FPS overlay\nfor online games. Anti-cheat safe (no inject).",
+        "menu_show_ping": "Show Ping",
+        "menu_show_loss": "Show Loss",
+        "menu_show_jitter": "Show Jitter (60s)",
+        "menu_show_minmax": "Show Min/Max (session)",
+        "menu_show_fps": "Show FPS",
+        "menu_show_low1": "Show 1% Low (60s)",
+        "menu_show_frametime": "Show Frame time",
+        "menu_show_ram": "Show RAM",
+        "menu_show_vram": "Show VRAM",
+        "menu_show_api": "Show API",
+        "menu_process": "Process: {value}",
+        "menu_target": "Target: {value}",
+        "menu_api": "API: {value}",
+        "menu_status": "Status: {value}",
+        "menu_start_monitoring": "Start monitoring",
+        "menu_stop_monitoring": "Stop monitoring",
+        "menu_choose_target": "Choose target process...",
+        "menu_use_auto_detect": "Use auto-detect",
+        "menu_options": "Options",
+        "menu_check_updates": "Check for updates now",
+        "menu_auto_update": "Auto-update on launch",
+        "menu_start_with_windows": "Start with Windows",
+        "menu_reset_position": "Reset overlay position",
+        "menu_hotkey": "Hotkey: {value}",
+        "menu_language": "Language",
+        "menu_language_en": "English",
+        "menu_language_vi": "Tiếng Việt",
+        "menu_donate": "Donate for ムKim",
+        "menu_copyright": "Copyright",
+        "menu_close": "Close",
+        "overlay_waiting_lobby": "Waiting for lobby and stable connection...",
+        "overlay_waiting_start": "Waiting for Start...",
+        "overlay_waiting_game": "Waiting for game...",
+        "overlay_waiting_match": "{process} is in menu — waiting to enter a match...",
+        "overlay_error": "Error: {error}",
+        "badge_recommended": "Recommended",
+        "badge_candidate": "Candidate",
+        "badge_recommended_accel": "Recommended via accelerator",
+        "target_auto": "(auto)",
+        "process_waiting": "(waiting)",
+        "city_waiting": "(waiting)",
+        "city_waiting_lobby": "(waiting lobby)",
+        "city_waiting_net": "(waiting net)",
+        "city_unknown": "(unknown)",
+    },
+    "vi": {
+        "status_waiting_start": "Đang chờ Start",
+        "status_waiting_lobby": "Đang chờ lobby",
+        "status_active": "Đang hoạt động",
+        "status_waiting_game": "Đang chờ game",
+        "update_title": "Cập nhật",
+        "update_exe_only": "Chỉ hỗ trợ tự động cập nhật khi chạy từ bản PingOverlay.exe đã build.",
+        "update_latest": "Bạn đang ở bản mới nhất ({version}).",
+        "update_available_title": "Có bản cập nhật mới",
+        "update_available_body": "Đã có bản mới {version}.\n\nBạn đang dùng {current}.\nỨng dụng sẽ tải và tự khởi động lại để cập nhật.\n\nCập nhật ngay?",
+        "update_installing": "Đang cập nhật lên {version}. Ứng dụng sẽ tự khởi động lại.",
+        "update_error": "Không thể cập nhật:\n{error}",
+        "pick_process_title": "Chọn process game",
+        "pick_process_desc": "Chọn process đang sở hữu cửa sổ game. Danh sách đã ưu tiên theo 3D API và tín hiệu mạng.",
+        "pick_process_none": "Không thấy process nào có cửa sổ đủ lớn để bám overlay.\nHãy mở game trước rồi thử lại.",
+        "button_ok": "OK",
+        "button_cancel": "Hủy",
+        "pick_city_title": "Chọn server (thành phố)",
+        "pick_city_none": "Không scan được city nào từ process.\nProcess có thể chưa có kết nối ra ngoài.",
+        "button_close": "Đóng",
+        "pick_city_label": "Server (city) scan được:",
+        "copyright_title": "Bản quyền",
+        "copyright_body": "PingOverlay\n\nPhiên bản {version}\nPhát triển bởi {developer}\n© {year} {developer}. Đã đăng ký mọi quyền.\n\nOverlay Ping / Packet Loss / FPS thời gian thực\ncho game online. Anti-cheat safe (không inject).",
+        "menu_show_ping": "Hiện Ping",
+        "menu_show_loss": "Hiện Loss",
+        "menu_show_jitter": "Hiện Jitter (60s)",
+        "menu_show_minmax": "Hiện Min/Max (phiên)",
+        "menu_show_fps": "Hiện FPS",
+        "menu_show_low1": "Hiện 1% Low (60s)",
+        "menu_show_frametime": "Hiện Frame time",
+        "menu_show_ram": "Hiện RAM",
+        "menu_show_vram": "Hiện VRAM",
+        "menu_show_api": "Hiện API",
+        "menu_process": "Process: {value}",
+        "menu_target": "Target: {value}",
+        "menu_api": "API: {value}",
+        "menu_status": "Trạng thái: {value}",
+        "menu_start_monitoring": "Bắt đầu theo dõi",
+        "menu_stop_monitoring": "Dừng theo dõi",
+        "menu_choose_target": "Chọn process mục tiêu...",
+        "menu_use_auto_detect": "Dùng auto-detect",
+        "menu_options": "Tùy chọn",
+        "menu_check_updates": "Kiểm tra cập nhật ngay",
+        "menu_auto_update": "Tự cập nhật khi mở app",
+        "menu_start_with_windows": "Khởi động cùng Windows",
+        "menu_reset_position": "Đặt lại vị trí overlay",
+        "menu_hotkey": "Hotkey: {value}",
+        "menu_language": "Ngôn ngữ",
+        "menu_language_en": "English",
+        "menu_language_vi": "Tiếng Việt",
+        "menu_donate": "Donate for ムKim",
+        "menu_copyright": "Bản quyền",
+        "menu_close": "Đóng",
+        "overlay_waiting_lobby": "Đang chờ load lobby và ổn định kết nối...",
+        "overlay_waiting_start": "Đang chờ Start...",
+        "overlay_waiting_game": "Đang chờ game...",
+        "overlay_waiting_match": "{process} đang ở menu — chờ vào match...",
+        "overlay_error": "Lỗi: {error}",
+        "badge_recommended": "Đề xuất",
+        "badge_candidate": "Ứng viên",
+        "badge_recommended_accel": "Đề xuất qua accelerator",
+        "target_auto": "(tự động)",
+        "process_waiting": "(đang chờ)",
+        "city_waiting": "(đang chờ)",
+        "city_waiting_lobby": "(đang chờ lobby)",
+        "city_waiting_net": "(đang chờ mạng)",
+        "city_unknown": "(không rõ)",
+    },
+}
+
+
+def lang_code(app) -> str:
+    code = ((app.cfg.get("language") if app else None) or "vi").strip().lower()
+    return code if code in I18N else "vi"
+
+
+def tr(app, key: str, **kwargs) -> str:
+    code = lang_code(app)
+    template = I18N.get(code, {}).get(key) or I18N["en"].get(key) or key
+    return template.format(**kwargs)
+
+
 def _make_icon_image(color: str) -> "Image.Image":
     img = Image.new("RGB", (64, 64), "black")
     d = ImageDraw.Draw(img)
@@ -103,6 +254,7 @@ def _make_icon_image(color: str) -> "Image.Image":
 
 ICON_GREEN = _make_icon_image("#00FF66")
 ICON_RED = _make_icon_image("#FF3333")
+_PICK_CONTEXT = None
 
 
 class AppState:
@@ -128,12 +280,12 @@ class AppState:
 
 def session_status_text(app: AppState) -> str:
     if not app.monitoring_enabled:
-        return "Waiting for Start"
+        return tr(app, "status_waiting_start")
     if app.warming:
-        return "Waiting for lobby"
+        return tr(app, "status_waiting_lobby")
     if app.active:
-        return "Active"
-    return "Waiting for game"
+        return tr(app, "status_active")
+    return tr(app, "status_waiting_game")
 
 
 def maybe_check_for_updates(
@@ -154,8 +306,8 @@ def maybe_check_for_updates(
             overlay.root.after(
                 0,
                 lambda: messagebox.showinfo(
-                    "Update",
-                    "Auto-update chỉ hỗ trợ khi chạy từ bản PingOverlay.exe đã build.",
+                    tr(app, "update_title"),
+                    tr(app, "update_exe_only"),
                 ),
             )
         return
@@ -174,8 +326,8 @@ def maybe_check_for_updates(
                     overlay.root.after(
                         0,
                         lambda: messagebox.showinfo(
-                            "Update",
-                            f"Bạn đang ở bản mới nhất ({__version__}).",
+                            tr(app, "update_title"),
+                            tr(app, "update_latest", version=__version__),
                         ),
                     )
                 return
@@ -187,11 +339,8 @@ def maybe_check_for_updates(
 
                 def ask():
                     answer["value"] = messagebox.askyesno(
-                        "Update available",
-                        f"Đã có bản mới {info.version}.\n\n"
-                        f"Bạn đang dùng {__version__}.\n"
-                        f"Ứng dụng sẽ tải và khởi động lại để cập nhật.\n\n"
-                        f"Cập nhật ngay?",
+                        tr(app, "update_available_title"),
+                        tr(app, "update_available_body", version=info.version, current=__version__),
                     )
                     done.set()
 
@@ -206,8 +355,8 @@ def maybe_check_for_updates(
 
             def finish_and_exit():
                 messagebox.showinfo(
-                    "Update",
-                    f"Đang cập nhật lên {info.version}. Ứng dụng sẽ tự khởi động lại.",
+                    tr(app, "update_title"),
+                    tr(app, "update_installing", version=info.version),
                 )
                 try:
                     tray.stop()
@@ -222,7 +371,10 @@ def maybe_check_for_updates(
             if interactive:
                 overlay.root.after(
                     0,
-                    lambda msg=err: messagebox.showerror("Update", f"Không thể cập nhật:\n{msg}"),
+                    lambda msg=err: messagebox.showerror(
+                        tr(app, "update_title"),
+                        tr(app, "update_error", error=msg),
+                    ),
                 )
         finally:
             app.update_in_progress = False
@@ -516,24 +668,24 @@ def _pickable_process_entries() -> list[dict]:
 
 def pick_process() -> tuple[int, str] | None:
     procs = _pickable_process_entries()
+    app = _PICK_CONTEXT
     win = tk.Tk()
-    win.title("Chọn process game")
+    win.title(tr(app, "pick_process_title"))
     win.geometry("760x520")
     tk.Label(
         win,
-        text=("Chọn process có cửa sổ game. Danh sách đã ưu tiên app có "
-              "3D API và public connection."),
+        text=tr(app, "pick_process_desc"),
         justify="left",
         wraplength=700,
     ).pack(padx=10, pady=8, anchor="w")
 
     lb = tk.Listbox(win, width=110, height=22)
     for entry in procs:
-        badge = "Recommended"
+        badge = tr(app, "badge_recommended")
         if not entry["recommended"]:
-            badge = "Candidate"
+            badge = tr(app, "badge_candidate")
         elif entry["routed_via_accelerator"]:
-            badge = "Recommended via accelerator"
+            badge = tr(app, "badge_recommended_accel")
         lb.insert(
             tk.END,
             f"{entry['pid']:>6}  {entry['name']:<28}  "
@@ -556,34 +708,33 @@ def pick_process() -> tuple[int, str] | None:
     if not procs:
         tk.Label(
             win,
-            text=("Không thấy process nào có cửa sổ đủ lớn để bám overlay.\n"
-                  "Hãy mở game trước rồi thử lại."),
+            text=tr(app, "pick_process_none"),
             fg="red",
             justify="left",
         ).pack(padx=10, pady=8, anchor="w")
 
     btns = tk.Frame(win)
     btns.pack(pady=8)
-    tk.Button(btns, text="OK", width=16, command=ok,
+    tk.Button(btns, text=tr(app, "button_ok"), width=16, command=ok,
               state=("normal" if procs else "disabled")).pack(side="left", padx=6)
-    tk.Button(btns, text="Cancel", width=16, command=win.destroy).pack(side="left", padx=6)
+    tk.Button(btns, text=tr(app, "button_cancel"), width=16, command=win.destroy).pack(side="left", padx=6)
     win.mainloop()
     return result.get("value")
 
 
 def pick_city(cities: list[str]) -> str | None:
+    app = _PICK_CONTEXT
     win = tk.Tk()
-    win.title("Chọn Server (theo thành phố)")
+    win.title(tr(app, "pick_city_title"))
     win.geometry("360x170")
     if not cities:
-        tk.Label(win, text="Không scan được city nào từ process.\n"
-                           "Process có thể chưa có kết nối ra ngoài.",
+        tk.Label(win, text=tr(app, "pick_city_none"),
                  fg="red").pack(pady=20)
-        tk.Button(win, text="Đóng", width=12, command=win.destroy).pack()
+        tk.Button(win, text=tr(app, "button_close"), width=12, command=win.destroy).pack()
         win.mainloop()
         return None
 
-    tk.Label(win, text="Server (city) scan được:").pack(pady=6)
+    tk.Label(win, text=tr(app, "pick_city_label")).pack(pady=6)
     var = tk.StringVar()
     cb = ttk.Combobox(win, textvariable=var, values=cities,
                       state="readonly", width=42)
@@ -596,7 +747,7 @@ def pick_city(cities: list[str]) -> str | None:
         result["value"] = var.get()
         win.destroy()
 
-    tk.Button(win, text="OK", width=16, command=ok).pack(pady=10)
+    tk.Button(win, text=tr(app, "button_ok"), width=16, command=ok).pack(pady=10)
     win.mainloop()
     return result.get("value")
 
@@ -604,6 +755,9 @@ def pick_city(cities: list[str]) -> str | None:
 # ---------- Tray ----------
 def make_tray_icon(overlay: Overlay, options: OverlayOptions,
                    app: AppState) -> pystray.Icon:
+    def _display_proc_name() -> str:
+        return tr(app, "process_waiting") if app.proc_name == "(waiting)" else app.proc_name
+
     def on_click(icon, item=None):
         overlay.root.after(0, overlay.toggle)
 
@@ -661,6 +815,16 @@ def make_tray_icon(overlay: Overlay, options: OverlayOptions,
         except Exception:
             pass
 
+    def on_set_language(lang: str):
+        def _set():
+            app.cfg["language"] = lang
+            app_config.save(app.cfg)
+            try:
+                tray.update_menu()
+            except Exception:
+                pass
+        overlay.root.after(0, _set)
+
     def on_check_updates(icon, item=None):
         overlay.root.after(
             0,
@@ -679,13 +843,13 @@ def make_tray_icon(overlay: Overlay, options: OverlayOptions,
         if not enabled:
             stop_session(app, overlay, tray)
             try:
-                tray.title = "PingOverlay (paused)"
+                tray.title = f"PingOverlay ({session_status_text(app)})"
             except Exception:
                 pass
             print("[tray] monitoring paused; waiting for Start")
         else:
             try:
-                tray.title = "PingOverlay (waiting for game)"
+                tray.title = f"PingOverlay ({session_status_text(app)})"
             except Exception:
                 pass
             target = (app.cfg.get("target_process") or "").strip() or None
@@ -739,6 +903,8 @@ def make_tray_icon(overlay: Overlay, options: OverlayOptions,
 
     def on_choose_target(icon, item=None):
         def _choose():
+            global _PICK_CONTEXT
+            _PICK_CONTEXT = app
             selected = pick_process()
             if not selected:
                 return
@@ -749,13 +915,14 @@ def make_tray_icon(overlay: Overlay, options: OverlayOptions,
     def on_copyright(icon, item):
         def show():
             messagebox.showinfo(
-                "Copyright",
-                f"PingOverlay\n\n"
-                f"Version {__version__}\n"
-                f"Developed by {DEVELOPER_NAME}\n"
-                f"\u00a9 {COPYRIGHT_YEAR} {DEVELOPER_NAME}. All rights reserved.\n\n"
-                f"Real-time Ping / Packet Loss / FPS overlay\n"
-                f"for online games. Anti-cheat safe (no inject).",
+                tr(app, "copyright_title"),
+                tr(
+                    app,
+                    "copyright_body",
+                    version=__version__,
+                    developer=DEVELOPER_NAME,
+                    year=COPYRIGHT_YEAR,
+                ),
             )
         overlay.root.after(0, show)
 
@@ -766,60 +933,74 @@ def make_tray_icon(overlay: Overlay, options: OverlayOptions,
             print(f"[tray] donate open error: {e}")
 
     options_menu = pystray.Menu(
-        pystray.MenuItem("Show Ping", make_toggle("show_ping"),
+        pystray.MenuItem(tr(app, "menu_show_ping"), make_toggle("show_ping"),
                          checked=lambda i: options.show_ping),
-        pystray.MenuItem("Show Loss", make_toggle("show_loss"),
+        pystray.MenuItem(tr(app, "menu_show_loss"), make_toggle("show_loss"),
                          checked=lambda i: options.show_loss),
-        pystray.MenuItem("Show Jitter (60s)", make_toggle("show_jitter"),
+        pystray.MenuItem(tr(app, "menu_show_jitter"), make_toggle("show_jitter"),
                          checked=lambda i: options.show_jitter),
-        pystray.MenuItem("Show Min/Max (session)", make_toggle("show_minmax"),
+        pystray.MenuItem(tr(app, "menu_show_minmax"), make_toggle("show_minmax"),
                          checked=lambda i: options.show_minmax),
         pystray.Menu.SEPARATOR,
-        pystray.MenuItem("Show FPS", make_toggle("show_fps"),
+        pystray.MenuItem(tr(app, "menu_show_fps"), make_toggle("show_fps"),
                          checked=lambda i: options.show_fps),
-        pystray.MenuItem("Show 1% Low (60s)", make_toggle("show_low1"),
+        pystray.MenuItem(tr(app, "menu_show_low1"), make_toggle("show_low1"),
                          checked=lambda i: options.show_low1),
-        pystray.MenuItem("Show Frame time", make_toggle("show_frametime"),
+        pystray.MenuItem(tr(app, "menu_show_frametime"), make_toggle("show_frametime"),
                          checked=lambda i: options.show_frametime),
         pystray.Menu.SEPARATOR,
-        pystray.MenuItem("Show RAM", make_toggle("show_ram"),
+        pystray.MenuItem(tr(app, "menu_show_ram"), make_toggle("show_ram"),
                          checked=lambda i: options.show_ram),
-        pystray.MenuItem("Show VRAM", make_toggle("show_vram"),
+        pystray.MenuItem(tr(app, "menu_show_vram"), make_toggle("show_vram"),
                          checked=lambda i: options.show_vram),
-        pystray.MenuItem("Show API", make_toggle("show_api"),
+        pystray.MenuItem(tr(app, "menu_show_api"), make_toggle("show_api"),
                          checked=lambda i: options.show_api),
     )
 
+    language_menu = pystray.Menu(
+        pystray.MenuItem(
+            tr(app, "menu_language_en"),
+            lambda icon, item: on_set_language("en"),
+            checked=lambda i: lang_code(app) == "en",
+        ),
+        pystray.MenuItem(
+            tr(app, "menu_language_vi"),
+            lambda icon, item: on_set_language("vi"),
+            checked=lambda i: lang_code(app) == "vi",
+        ),
+    )
+
     menu = pystray.Menu(
-        pystray.MenuItem(lambda i: f"Process: {app.proc_name}", None, enabled=False),
-        pystray.MenuItem(lambda i: f"Target: {app.cfg.get('target_process') or '(auto)'}",
+        pystray.MenuItem(lambda i: tr(app, "menu_process", value=_display_proc_name()), None, enabled=False),
+        pystray.MenuItem(lambda i: tr(app, "menu_target", value=app.cfg.get('target_process') or tr(app, "target_auto")),
                          None, enabled=False),
-        pystray.MenuItem(lambda i: f"API: {app.api}", None, enabled=False),
-        pystray.MenuItem(lambda i: f"Status: {session_status_text(app)}",
+        pystray.MenuItem(lambda i: tr(app, "menu_api", value=app.api), None, enabled=False),
+        pystray.MenuItem(lambda i: tr(app, "menu_status", value=session_status_text(app)),
                          None, enabled=False),
         pystray.Menu.SEPARATOR,
-        pystray.MenuItem("Start monitoring", on_start_monitoring,
+        pystray.MenuItem(tr(app, "menu_start_monitoring"), on_start_monitoring,
                          enabled=lambda i: not app.monitoring_enabled),
-        pystray.MenuItem("Stop monitoring", on_stop_monitoring,
+        pystray.MenuItem(tr(app, "menu_stop_monitoring"), on_stop_monitoring,
                          enabled=lambda i: app.monitoring_enabled),
         pystray.Menu.SEPARATOR,
-        pystray.MenuItem("Choose target process...", on_choose_target),
-        pystray.MenuItem("Use auto-detect", on_use_auto_detect,
+        pystray.MenuItem(tr(app, "menu_choose_target"), on_choose_target),
+        pystray.MenuItem(tr(app, "menu_use_auto_detect"), on_use_auto_detect,
                          checked=lambda i: not (app.cfg.get("target_process") or "").strip()),
         pystray.Menu.SEPARATOR,
-        pystray.MenuItem("Options", options_menu),
-        pystray.MenuItem("Check for updates now", on_check_updates,
+        pystray.MenuItem(tr(app, "menu_options"), options_menu),
+        pystray.MenuItem(tr(app, "menu_check_updates"), on_check_updates,
                          enabled=lambda i: not app.update_in_progress),
-        pystray.MenuItem("Auto-update on launch", on_toggle_auto_update,
+        pystray.MenuItem(tr(app, "menu_auto_update"), on_toggle_auto_update,
                          checked=lambda i: bool((app.cfg.get("update") or {}).get("check_on_startup", True))),
-        pystray.MenuItem("Start with Windows", on_toggle_autostart,
+        pystray.MenuItem(tr(app, "menu_start_with_windows"), on_toggle_autostart,
                          checked=lambda i: bool(app.cfg.get("autostart", False))),
-        pystray.MenuItem("Reset overlay position", on_reset_position),
-        pystray.MenuItem(lambda i: f"Hotkey: {app.hotkey_label}", None, enabled=False),
-        pystray.MenuItem("Donate", on_donate),
-        pystray.MenuItem("Copyright", on_copyright),
+        pystray.MenuItem(tr(app, "menu_reset_position"), on_reset_position),
+        pystray.MenuItem(lambda i: tr(app, "menu_hotkey", value=app.hotkey_label), None, enabled=False),
+        pystray.MenuItem(tr(app, "menu_language"), language_menu),
+        pystray.MenuItem(tr(app, "menu_donate"), on_donate),
+        pystray.MenuItem(tr(app, "menu_copyright"), on_copyright),
         pystray.Menu.SEPARATOR,
-        pystray.MenuItem("Close", on_quit),
+        pystray.MenuItem(tr(app, "menu_close"), on_quit),
     )
     icon = pystray.Icon("PingOverlay", ICON_RED, "PingOverlay (waiting)", menu)
     icon.default_action = on_click
@@ -984,16 +1165,16 @@ def display_loop(overlay: Overlay, app: AppState, options: OverlayOptions):
         try:
             if app.warming:
                 overlay.set_text(
-                    "Đang chờ load lobby và ổn định kết nối...",
+                    tr(app, "overlay_waiting_lobby"),
                     color="#FFAA00",
                 )
             elif not app.monitoring_enabled:
-                overlay.set_text("Đang chờ Start...", color="#888888")
+                overlay.set_text(tr(app, "overlay_waiting_start"), color="#888888")
             elif not app.active:
-                overlay.set_text("Đang chờ game...", color="#888888")
+                overlay.set_text(tr(app, "overlay_waiting_game"), color="#888888")
             elif app.ping_state is None:
                 overlay.set_text(
-                    f"{app.proc_name} đang ở menu — chờ vào match...",
+                    tr(app, "overlay_waiting_match", process=app.proc_name),
                     color="#FFAA00",
                 )
             else:
@@ -1072,7 +1253,7 @@ def display_loop(overlay: Overlay, app: AppState, options: OverlayOptions):
                 overlay.set_text((" │ ".join(parts) if parts else " ") + tail,
                                  color=color)
         except Exception as e:
-            overlay.set_text(f"Lỗi: {e}", color="#FF5555")
+            overlay.set_text(tr(app, "overlay_error", error=e), color="#FF5555")
         finally:
             overlay.schedule(DISPLAY_MS, tick)
 
@@ -1199,9 +1380,7 @@ def stop_session(app: AppState, overlay: Overlay, tray: pystray.Icon) -> None:
     overlay.root.after(0, overlay.hide)
     try:
         tray.icon = ICON_RED
-        tray.title = ("PingOverlay (waiting for game)"
-                      if app.monitoring_enabled
-                      else "PingOverlay (paused)")
+        tray.title = f"PingOverlay ({session_status_text(app)})"
         tray.update_menu()
     except Exception:
         pass
@@ -1273,12 +1452,12 @@ def main():
         print(f"[main] overlay offset saved: ({x}, {y})")
 
     overlay = Overlay(cfg=cfg, on_offset_changed=_persist_offset)
-    overlay.set_text("Đang chờ Start...", color="#888888")
+    overlay.set_text(tr(app, "overlay_waiting_start"), color="#888888")
     overlay.hide()  # khởi động ở trạng thái ẩn; supervisor sẽ bật khi có game
 
     tray = make_tray_icon(overlay, options, app)
     try:
-        tray.title = "PingOverlay (paused)"
+        tray.title = f"PingOverlay ({session_status_text(app)})"
     except Exception:
         pass
     threading.Thread(target=tray.run, daemon=True).start()

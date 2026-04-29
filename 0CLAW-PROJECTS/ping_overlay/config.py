@@ -24,6 +24,7 @@ APPDATA_SUBDIR = "PingOverlay"
 
 DEFAULTS: dict[str, Any] = {
     "target_process": "",
+    "language": "vi",
     "hotkey": {
         "modifiers": ["ctrl", "shift"],
         "key": "P",
