@@ -1,0 +1,5 @@
+psutil>=5.9
+ping3>=4.0
+pystray>=0.19
+Pillow>=10.0
+requests>=2.31

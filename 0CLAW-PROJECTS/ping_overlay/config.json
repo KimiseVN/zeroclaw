@@ -1,0 +1,48 @@
+{
+  "target_process": "",
+  "hotkey": {
+    "modifiers": [
+      "ctrl",
+      "shift"
+    ],
+    "key": "P"
+  },
+  "autostart": false,
+  "update": {
+    "enabled": true,
+    "check_on_startup": true,
+    "auto_install": true,
+    "include_prerelease": false,
+    "repo": "zeroclaw-labs/zeroclaw",
+    "tag_prefix": "ping-overlay-v",
+    "asset_name": "PingOverlay.exe"
+  },
+  "options": {
+    "show_ping": true,
+    "show_loss": true,
+    "show_jitter": false,
+    "show_minmax": false,
+    "show_fps": true,
+    "show_low1": false,
+    "show_frametime": false,
+    "show_ram": true,
+    "show_vram": true,
+    "show_api": true
+  },
+  "overlay": {
+    "offset_x": 12,
+    "offset_y": 8,
+    "font_size": 14,
+    "padding": 12,
+    "corner_radius": 12,
+    "glow_radius": 5,
+    "bg_alpha": 170,
+    "window_alpha": 0.92
+  },
+  "theme": {
+    "text": "#00E5FF",
+    "glow": "#FF00AA",
+    "bg_left": "#0A2A3A",
+    "bg_right": "#3A0A2A"
+  }
+}
