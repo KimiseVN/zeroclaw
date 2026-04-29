@@ -48,6 +48,8 @@ DEFAULTS: dict[str, Any] = {
         "show_fps": True,
         "show_low1": False,
         "show_frametime": False,
+        "show_cpu": True,
+        "show_cpu_temp": True,
         "show_ram": True,
         "show_vram": True,
         "show_api": True,

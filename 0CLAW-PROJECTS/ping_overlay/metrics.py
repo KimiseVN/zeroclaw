@@ -32,6 +32,54 @@ import psutil
 _CREATE_NO_WINDOW = 0x08000000
 
 
+def _query_cpu_temperature_c(timeout_s: float = 3.0) -> float | None:
+    """Best-effort CPU temperature trên Windows.
+    Trả None nếu máy/driver không expose sensor phù hợp.
+    """
+    script = r"""
+$ErrorActionPreference = 'SilentlyContinue'
+$namespaces = @('root/LibreHardwareMonitor', 'root/OpenHardwareMonitor')
+foreach ($ns in $namespaces) {
+  $sensor = Get-CimInstance -Namespace $ns -ClassName Sensor |
+    Where-Object {
+      $_.SensorType -eq 'Temperature' -and (
+        $_.Name -match 'CPU' -or $_.Name -match 'Package' -or
+        $_.Name -match 'Tctl' -or $_.Name -match 'Core'
+      )
+    } |
+    Select-Object -First 1 -ExpandProperty Value
+  if ($null -ne $sensor -and "$sensor" -ne '') {
+    [Console]::WriteLine([double]$sensor)
+    exit 0
+  }
+}
+$acpi = Get-CimInstance -Namespace root/wmi -ClassName MSAcpi_ThermalZoneTemperature |
+  Select-Object -First 1 -ExpandProperty CurrentTemperature
+if ($null -ne $acpi -and "$acpi" -ne '') {
+  [Console]::WriteLine(([double]$acpi / 10.0) - 273.15)
+}
+"""
+    try:
+        res = subprocess.run(
+            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script],
+            capture_output=True,
+            text=True,
+            timeout=timeout_s,
+            creationflags=_CREATE_NO_WINDOW,
+        )
+        if res.returncode != 0:
+            return None
+        raw = (res.stdout or "").strip()
+        if not raw:
+            return None
+        val = float(raw.splitlines()[0].strip())
+        if -50.0 <= val <= 150.0:
+            return val
+    except Exception:
+        return None
+    return None
+
+
 # ---------- Rolling window ----------
 
 class RollingWindow:
@@ -846,12 +894,15 @@ class MemoryMonitor:
         self.pid = int(pid)
         self.poll_sec = float(poll_sec)
         self._proc: psutil.Process | None = None
+        self._cpu_count = max(1, int(psutil.cpu_count() or 1))
         self._vram = GpuProcessVramQuery(pid)
         self._adapter_vram = GpuLocalAdapterQuery()
         self._stop = False
         self._thread: threading.Thread | None = None
         self._lock = threading.Lock()
         self._snap: dict[str, float | None] = {
+            "cpu_proc_pct": None,
+            "cpu_temp_c": None,
             "ram_proc_b": None, "ram_total_b": None,
             "vram_proc_b": None, "vram_total_b": None,
             "vram_gpu_b": None,
@@ -867,10 +918,14 @@ class MemoryMonitor:
         self._first_seen: float = time.monotonic()
         self._diagnose_dumped: bool = False
         self._logged_adapter_total: bool = False
+        self._cpu_temp_last_call: float = 0.0
+        self._cpu_temp_value: float | None = None
+        self._cpu_temp_interval_s: float = 15.0
 
     def start(self) -> bool:
         try:
             self._proc = psutil.Process(self.pid)
+            self._proc.cpu_percent(interval=None)
         except Exception as e:
             print(f"[metrics] psutil.Process({self.pid}) failed: {e}")
             return False
@@ -892,11 +947,22 @@ class MemoryMonitor:
         ram_total = psutil.virtual_memory().total
         while not self._stop:
             ram_proc: int | None = None
+            cpu_proc_pct: float | None = None
             try:
                 if self._proc and self._proc.is_running():
                     ram_proc = int(self._proc.memory_info().rss)
+                    raw_cpu = float(self._proc.cpu_percent(interval=None))
+                    cpu_proc_pct = max(0.0, raw_cpu / self._cpu_count)
             except Exception:
                 ram_proc = None
+                cpu_proc_pct = None
+
+            now = time.monotonic()
+            if now - self._cpu_temp_last_call >= self._cpu_temp_interval_s:
+                self._cpu_temp_last_call = now
+                temp = _query_cpu_temperature_c()
+                if temp is not None:
+                    self._cpu_temp_value = temp
 
             # Primary VRAM path: PDH (nhanh, in-process)
             vram_proc = self._vram.vram_bytes()
@@ -961,6 +1027,8 @@ class MemoryMonitor:
                           "cho process này; VRAM sẽ không thể hiện)")
 
             with self._lock:
+                self._snap["cpu_proc_pct"] = cpu_proc_pct
+                self._snap["cpu_temp_c"] = self._cpu_temp_value
                 self._snap["ram_proc_b"] = ram_proc
                 self._snap["ram_total_b"] = ram_total
                 self._snap["vram_proc_b"] = vram_proc
@@ -990,6 +1058,8 @@ class MemoryMonitor:
         self._proc = None
         with self._lock:
             self._snap = {
+                "cpu_proc_pct": None,
+                "cpu_temp_c": None,
                 "ram_proc_b": None, "ram_total_b": None,
                 "vram_proc_b": None, "vram_total_b": None,
                 "vram_gpu_b": None,
@@ -1024,3 +1094,19 @@ def fmt_ratio_bytes(used: float | int | None,
     if tg >= 1.0:
         return f"{ug:.1f}/{tg:.0f}G"
     return f"{fmt_bytes(used)}/{fmt_bytes(total)}"
+
+
+def fmt_ratio_bytes_pct(used: float | int | None,
+                        total: float | int | None) -> str:
+    base = fmt_ratio_bytes(used, total)
+    if used is None or total is None:
+        return base
+    try:
+        total_f = float(total)
+        used_f = float(used)
+        if total_f <= 0:
+            return base
+        pct = max(0.0, min(999.0, (used_f / total_f) * 100.0))
+        return f"{base} ({pct:.0f}%)"
+    except Exception:
+        return base

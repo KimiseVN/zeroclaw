@@ -52,7 +52,7 @@ import config as app_config
 from app_version import __version__
 from hotkey import GlobalHotkey
 import autostart
-from metrics import MemoryMonitor, RollingWindow, fmt_ratio_bytes
+from metrics import MemoryMonitor, RollingWindow, fmt_ratio_bytes_pct
 from updater import (
     check_for_update,
     cleanup_stale_update_artifacts,
@@ -216,6 +216,8 @@ I18N = {
         "menu_show_fps": "Show FPS",
         "menu_show_low1": "Show 1% Low (60s)",
         "menu_show_frametime": "Show Frame time",
+        "menu_show_cpu": "Show CPU",
+        "menu_show_cpu_temp": "Show CPU Temp",
         "menu_show_ram": "Show RAM",
         "menu_show_vram": "Show VRAM",
         "menu_show_api": "Show API",
@@ -309,6 +311,8 @@ I18N = {
         "menu_show_fps": "Hiện FPS",
         "menu_show_low1": "Hiện 1% Low (60s)",
         "menu_show_frametime": "Hiện Frame time",
+        "menu_show_cpu": "Hiện CPU",
+        "menu_show_cpu_temp": "Hiện nhiệt CPU",
         "menu_show_ram": "Hiện RAM",
         "menu_show_vram": "Hiện VRAM",
         "menu_show_api": "Hiện API",
@@ -570,6 +574,8 @@ class OverlayOptions:
         self.show_fps = bool(opts.get("show_fps", True))
         self.show_low1 = bool(opts.get("show_low1", True))
         self.show_frametime = bool(opts.get("show_frametime", False))
+        self.show_cpu = bool(opts.get("show_cpu", True))
+        self.show_cpu_temp = bool(opts.get("show_cpu_temp", True))
         self.show_ram = bool(opts.get("show_ram", True))
         self.show_vram = bool(opts.get("show_vram", True))
         self.show_api = bool(opts.get("show_api", True))
@@ -583,6 +589,8 @@ class OverlayOptions:
             "show_fps": self.show_fps,
             "show_low1": self.show_low1,
             "show_frametime": self.show_frametime,
+            "show_cpu": self.show_cpu,
+            "show_cpu_temp": self.show_cpu_temp,
             "show_ram": self.show_ram,
             "show_vram": self.show_vram,
             "show_api": self.show_api,
@@ -604,14 +612,16 @@ class ControlPanel:
             "show_fps": "menu_show_fps",
             "show_low1": "menu_show_low1",
             "show_frametime": "menu_show_frametime",
+            "show_cpu": "menu_show_cpu",
+            "show_cpu_temp": "menu_show_cpu_temp",
             "show_ram": "menu_show_ram",
             "show_vram": "menu_show_vram",
             "show_api": "menu_show_api",
         }
 
         self.window = tk.Toplevel(master)
-        self.window.geometry("500x535")
-        self.window.minsize(470, 520)
+        self.window.geometry("500x560")
+        self.window.minsize(470, 545)
         self.window.protocol("WM_DELETE_WINDOW", self._on_close_requested)
         _apply_window_icon(self.window)
 
@@ -668,7 +678,8 @@ class ControlPanel:
             "show_ping", "show_loss",
             "show_jitter", "show_minmax",
             "show_fps", "show_low1",
-            "show_frametime", "show_ram",
+            "show_frametime", "show_cpu",
+            "show_cpu_temp", "show_ram",
             "show_vram", "show_api",
         ]
         for idx, attr in enumerate(option_order):
@@ -1494,6 +1505,11 @@ def make_tray_icon(overlay: Overlay, options: OverlayOptions,
             pystray.MenuItem(menu_text("menu_show_frametime"), make_toggle("show_frametime"),
                              checked=lambda i: options.show_frametime),
             pystray.Menu.SEPARATOR,
+            pystray.MenuItem(menu_text("menu_show_cpu"), make_toggle("show_cpu"),
+                             checked=lambda i: options.show_cpu),
+            pystray.MenuItem(menu_text("menu_show_cpu_temp"), make_toggle("show_cpu_temp"),
+                             checked=lambda i: options.show_cpu_temp),
+            pystray.Menu.SEPARATOR,
             pystray.MenuItem(menu_text("menu_show_ram"), make_toggle("show_ram"),
                              checked=lambda i: options.show_ram),
             pystray.MenuItem(menu_text("menu_show_vram"), make_toggle("show_vram"),
@@ -1777,40 +1793,52 @@ def display_loop(overlay: Overlay, app: AppState, options: OverlayOptions):
                 parts: list[str] = []
                 if options.show_ping:
                     parts.append(
-                        f"Ping {lat:.0f}ms" if lat is not None else "Ping n/a"
+                        f"Ping: {lat:.0f}ms" if lat is not None else "Ping: n/a"
                     )
                 if options.show_loss:
                     parts.append(
-                        f"Loss {loss:.0f}%" if loss is not None else "Loss n/a"
+                        f"Loss: {loss:.0f}%" if loss is not None else "Loss: n/a"
                     )
                 if options.show_jitter:
                     parts.append(
-                        f"Jitter {jitter:.0f}ms" if jitter is not None
-                        else "Jitter n/a"
+                        f"Jitter: {jitter:.0f}ms" if jitter is not None
+                        else "Jitter: n/a"
                     )
                 if options.show_minmax:
                     if smin is not None and smax is not None:
-                        parts.append(f"Min/Max {smin:.0f}/{smax:.0f}ms")
+                        parts.append(f"Min/Max: {smin:.0f}/{smax:.0f}ms")
                     else:
-                        parts.append("Min/Max -/-")
+                        parts.append("Min/Max: -/-")
                 if options.show_fps:
                     parts.append(
-                        f"FPS {fps_val:.0f}" if fps_val is not None
-                        else "FPS n/a"
+                        f"FPS: {fps_val:.0f}" if fps_val is not None
+                        else "FPS: n/a"
                     )
                 if options.show_low1:
                     parts.append(
-                        f"1% Low {low1:.0f}" if low1 is not None
-                        else "1% Low n/a"
+                        f"1% Low: {low1:.0f}" if low1 is not None
+                        else "1% Low: n/a"
                     )
                 if options.show_frametime:
                     parts.append(
-                        f"Frame Time {ftime:.1f}ms" if ftime is not None
-                        else "Frame Time n/a"
+                        f"Frame Time: {ftime:.1f}ms" if ftime is not None
+                        else "Frame Time: n/a"
+                    )
+                if options.show_cpu and mem is not None:
+                    cpu_pct = mem.get("cpu_proc_pct")
+                    parts.append(
+                        f"CPU: {cpu_pct:.0f}%" if cpu_pct is not None
+                        else "CPU: n/a"
+                    )
+                if options.show_cpu_temp and mem is not None:
+                    cpu_temp = mem.get("cpu_temp_c")
+                    parts.append(
+                        f"CPU Temp: {cpu_temp:.0f}°" if cpu_temp is not None
+                        else "CPU Temp: n/a"
                     )
                 if options.show_ram and mem is not None:
                     parts.append(
-                        "RAM " + fmt_ratio_bytes(
+                        "RAM: " + fmt_ratio_bytes_pct(
                             mem.get("ram_proc_b"), mem.get("ram_total_b")
                         )
                     )
@@ -1819,12 +1847,12 @@ def display_loop(overlay: Overlay, app: AppState, options: OverlayOptions):
                     if vram_used is None:
                         vram_used = mem.get("vram_proc_b")
                     parts.append(
-                        "VRAM " + fmt_ratio_bytes(
+                        "VRAM: " + fmt_ratio_bytes_pct(
                             vram_used, mem.get("vram_total_b")
                         )
                     )
                 if options.show_api:
-                    parts.append(f"API {app.api}")
+                    parts.append(f"API: {app.api}")
 
                 # Suffix khi traffic đi qua accelerator (ExitLag/Gearup/...)
                 tail = ""
