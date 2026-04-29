@@ -244,6 +244,32 @@ def tr(app, key: str, **kwargs) -> str:
     return template.format(**kwargs)
 
 
+def _consume_update_stamp_arg() -> str | None:
+    args = sys.argv[1:]
+    if len(args) < 2:
+        return None
+    try:
+        idx = args.index("--update-stamp")
+    except ValueError:
+        return None
+    if idx + 1 >= len(args):
+        return None
+    stamp_path = args[idx + 1]
+    del args[idx:idx + 2]
+    sys.argv = [sys.argv[0], *args]
+    return stamp_path
+
+
+def _write_update_stamp(stamp_path: str | None) -> None:
+    if not stamp_path:
+        return
+    try:
+        with open(stamp_path, "w", encoding="utf-8") as f:
+            f.write(f"ok {__version__}\n")
+    except Exception as e:
+        print(f"[update] could not write startup stamp: {e}")
+
+
 def _make_icon_image(color: str) -> "Image.Image":
     img = Image.new("RGB", (64, 64), "black")
     d = ImageDraw.Draw(img)
@@ -1427,8 +1453,10 @@ def supervisor_loop(overlay: Overlay, app: AppState, tray: pystray.Icon):
 
 
 def main():
+    update_stamp_path = _consume_update_stamp_arg()
     cfg = app_config.load()
     cleanup_stale_update_artifacts()
+    _write_update_stamp(update_stamp_path)
     print(f"[main] version: {__version__}")
     print(f"[main] config path: {app_config.config_path()}")
     print(f"[main] target_process: {cfg.get('target_process')}  "
