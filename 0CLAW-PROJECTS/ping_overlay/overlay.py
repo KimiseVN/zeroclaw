@@ -195,6 +195,9 @@ class Overlay:
         self.canvas.pack()
         self._photo: ImageTk.PhotoImage | None = None
         self._img_item = self.canvas.create_image(0, 0, anchor="nw")
+        self._last_render_key: tuple[str, tuple[int, int, int], int] | None = None
+        self._last_window_size: tuple[int, int] | None = None
+        self._last_window_pos: tuple[int, int] | None = None
 
         # Fallback vị trí khi chưa có client area của game
         self.root.geometry(f"+{30}+{30}")
@@ -222,19 +225,27 @@ class Overlay:
     def set_text(self, text: str, color: str | None = None) -> None:
         """Render text (PIL glow + gradient). `color` để tương thích API
         cũ — nếu set, override màu text 1 lần. Không persist."""
+        text = text or " "
         if color is not None:
             try:
-                self._theme.text_rgb = _hex_to_rgb(color)
-                self._renderer.update_theme(self._theme)
+                new_rgb = _hex_to_rgb(color)
+                if new_rgb != self._theme.text_rgb:
+                    self._theme.text_rgb = new_rgb
+                    self._renderer.update_theme(self._theme)
+                    self._last_render_key = None
             except Exception:
                 pass
+        render_key = (text, self._theme.text_rgb, self._theme.font_size)
+        if render_key == self._last_render_key:
+            return
         try:
-            img = self._renderer.render(text or " ")
+            img = self._renderer.render(text)
         except Exception as e:
             # Fallback cực ngắn: đặt rỗng để không treo
             print(f"[overlay] render error: {e}")
             return
         self._photo = ImageTk.PhotoImage(img)
+        self._last_render_key = render_key
         self.canvas.configure(width=img.width, height=img.height)
         self.canvas.itemconfigure(self._img_item, image=self._photo)
         # Giữ size window đồng bộ (nếu width đổi). Tk geometry: "WxH+X+Y".
@@ -242,7 +253,10 @@ class Overlay:
             geom = self.root.geometry()
             if "x" in geom and "+" in geom:
                 _size, pos = geom.split("+", 1)  # "WxH", "X+Y"
-                self.root.geometry(f"{img.width}x{img.height}+{pos}")
+                size = (img.width, img.height)
+                if size != self._last_window_size:
+                    self.root.geometry(f"{img.width}x{img.height}+{pos}")
+                    self._last_window_size = size
         except Exception:
             pass
 
@@ -250,6 +264,7 @@ class Overlay:
                   overlay_cfg: dict | None) -> None:
         self._theme = _Theme(theme_cfg, overlay_cfg)
         self._renderer.update_theme(self._theme)
+        self._last_render_key = None
         try:
             self.root.attributes("-alpha", self._theme.window_alpha)
         except Exception:
@@ -265,7 +280,11 @@ class Overlay:
         self._last_client_xy = (int(x), int(y))
         try:
             ox, oy = self._offset
-            self.root.geometry(f"+{x + ox}+{y + oy}")
+            target = (x + ox, y + oy)
+            if target == self._last_window_pos:
+                return
+            self.root.geometry(f"+{target[0]}+{target[1]}")
+            self._last_window_pos = target
             self.root.attributes("-topmost", True)
         except Exception:
             pass
@@ -277,13 +296,20 @@ class Overlay:
             self.show()
 
     def hide(self) -> None:
+        if not self._visible:
+            return
         self.root.withdraw()
         self._visible = False
 
     def show(self) -> None:
+        if self._visible:
+            return
         self.root.deiconify()
         self.root.attributes("-topmost", True)
         self._visible = True
+
+    def is_visible(self) -> bool:
+        return self._visible
 
     def close(self) -> None:
         try:

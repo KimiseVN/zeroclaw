@@ -95,8 +95,10 @@ SWP_FRAMECHANGED = 0x0020
 
 ping3.EXCEPTIONS = False
 
-DISPLAY_MS = 300        # refresh overlay (latency + fps)
-WINDOW_POLL_MS = 200    # theo dõi vị trí cửa sổ game
+DISPLAY_MS_ACTIVE = 300
+DISPLAY_MS_WAITING = 900
+WINDOW_POLL_MS_ACTIVE = 250
+WINDOW_POLL_MS_IDLE = 1000
 PING_INTERVAL_S = 0.5   # khoảng cách mỗi lần ping (giây)
 IP_RESCAN_EVERY = 20    # cứ N ping thì scan lại IP (~10s)
 LOSS_WINDOW = 20        # số mẫu gần nhất tính packet loss
@@ -1593,11 +1595,13 @@ def window_follow_loop(overlay: Overlay, app: AppState):
     local = {"hwnd": None, "pid": None}
 
     def tick():
+        delay_ms = WINDOW_POLL_MS_IDLE
         try:
             if app.pid != local["pid"]:
                 local["pid"] = app.pid
                 local["hwnd"] = None
             if app.pid:
+                delay_ms = WINDOW_POLL_MS_ACTIVE
                 hwnd = local["hwnd"] or get_hwnd_for_pid(app.pid)
                 local["hwnd"] = hwnd
                 if hwnd:
@@ -1609,7 +1613,7 @@ def window_follow_loop(overlay: Overlay, app: AppState):
         except Exception:
             pass
         finally:
-            overlay.schedule(WINDOW_POLL_MS, tick)
+            overlay.schedule(delay_ms, tick)
 
     tick()
 
@@ -1742,6 +1746,7 @@ def display_loop(overlay: Overlay, app: AppState, options: OverlayOptions):
        Ping 42ms │ Loss 0% │ FPS 144 │ RAM 2.1/16G │ VRAM 4.5/8G │ API DX12
     """
     def tick():
+        delay_ms = DISPLAY_MS_WAITING
         try:
             if app.warming:
                 overlay.set_text(
@@ -1758,6 +1763,7 @@ def display_loop(overlay: Overlay, app: AppState, options: OverlayOptions):
                     color="#FFAA00",
                 )
             else:
+                delay_ms = DISPLAY_MS_ACTIVE
                 lat, loss = app.ping_state.snapshot()
                 jitter = app.ping_state.jitter_ms()
                 smin, smax = app.ping_state.session_minmax()
@@ -1835,7 +1841,7 @@ def display_loop(overlay: Overlay, app: AppState, options: OverlayOptions):
         except Exception as e:
             overlay.set_text(tr(app, "overlay_error", error=e), color="#FF5555")
         finally:
-            overlay.schedule(DISPLAY_MS, tick)
+            overlay.schedule(delay_ms, tick)
 
     tick()
 

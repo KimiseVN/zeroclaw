@@ -842,7 +842,7 @@ def _diagnose_gpu_counters(timeout_s: float = 5.0) -> str:
 class MemoryMonitor:
     """Tổng hợp RAM/VRAM cho 1 PID. Cache snapshot theo nhịp poll riêng."""
 
-    def __init__(self, pid: int, poll_sec: float = 1.0):
+    def __init__(self, pid: int, poll_sec: float = 1.5):
         self.pid = int(pid)
         self.poll_sec = float(poll_sec)
         self._proc: psutil.Process | None = None
