@@ -31,6 +31,7 @@ $updated = [regex]::Replace(
 
 Set-Content -Path $versionFile -Value $updated -Encoding UTF8
 
+Push-Location $root
 try {
     if (-not $SkipCompileCheck) {
         python -m py_compile autostart.py config.py fps.py hotkey.py main.py metrics.py net_utils.py overlay.py window_utils.py updater.py app_version.py
@@ -55,4 +56,7 @@ try {
 catch {
     Set-Content -Path $versionFile -Value $original -Encoding UTF8
     throw
+}
+finally {
+    Pop-Location
 }
