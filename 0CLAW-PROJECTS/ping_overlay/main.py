@@ -20,6 +20,7 @@ import sys
 import threading
 import time
 import tkinter as tk
+import webbrowser
 from collections import deque
 from tkinter import messagebox, ttk
 
@@ -81,6 +82,7 @@ LOSS_WINDOW = 20        # số mẫu gần nhất tính packet loss
 
 DEVELOPER_NAME = "ムKim - BunnyDOG Guild WWM"
 COPYRIGHT_YEAR = "2026"
+DONATE_URL = "https://www.paypal.com/donate/?hosted_button_id=5F4PKX7KSHDYN"
 
 SUPERVISOR_MS = 2000    # nhịp kiểm tra process sống/chết + auto-detect game mới
 
@@ -740,7 +742,6 @@ def make_tray_icon(overlay: Overlay, options: OverlayOptions,
 
     def on_copyright(icon, item):
         def show():
-            from tkinter import messagebox
             messagebox.showinfo(
                 "Copyright",
                 f"PingOverlay\n\n"
@@ -751,6 +752,12 @@ def make_tray_icon(overlay: Overlay, options: OverlayOptions,
                 f"for online games. Anti-cheat safe (no inject).",
             )
         overlay.root.after(0, show)
+
+    def on_donate(icon, item=None):
+        try:
+            webbrowser.open(DONATE_URL, new=2)
+        except Exception as e:
+            print(f"[tray] donate open error: {e}")
 
     options_menu = pystray.Menu(
         pystray.MenuItem("Show Ping", make_toggle("show_ping"),
@@ -803,6 +810,7 @@ def make_tray_icon(overlay: Overlay, options: OverlayOptions,
                          checked=lambda i: bool(app.cfg.get("autostart", False))),
         pystray.MenuItem("Reset overlay position", on_reset_position),
         pystray.MenuItem(lambda i: f"Hotkey: {app.hotkey_label}", None, enabled=False),
+        pystray.MenuItem("Donate", on_donate),
         pystray.MenuItem("Copyright", on_copyright),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("Close", on_quit),
