@@ -106,9 +106,11 @@ LOSS_WINDOW = 20        # số mẫu gần nhất tính packet loss
 DEVELOPER_NAME = "ムKim - BunnyDOG Guild WWM"
 COPYRIGHT_YEAR = "2026"
 DONATE_URL = "https://www.paypal.com/donate/?hosted_button_id=5F4PKX7KSHDYN"
+DISCORD_URL = "https://discord.gg/sSjavfYzna"
 ASSET_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
 ICON_PNG = ASSET_DIR / "icon.png"
 DONATE_PNG = ASSET_DIR / "donate-pp.png"
+DISCORD_PNG = ASSET_DIR / "join-dc.png"
 
 SUPERVISOR_MS = 2000    # nhịp kiểm tra process sống/chết + auto-detect game mới
 
@@ -185,6 +187,77 @@ def _show_copyright_dialog(parent, app) -> None:
     dialog.wait_window()
 
 
+class _HoverTooltip:
+    def __init__(self, parent, text_provider):
+        self.parent = parent
+        self.text_provider = text_provider
+        self.tip: tk.Toplevel | None = None
+        self.label: tk.Label | None = None
+
+    def bind(self, widget) -> None:
+        widget.bind("<Enter>", self._on_enter, add="+")
+        widget.bind("<Leave>", self._on_leave, add="+")
+        widget.bind("<Motion>", self._on_motion, add="+")
+        widget.bind("<ButtonPress>", self._on_leave, add="+")
+
+    def _on_enter(self, event) -> None:
+        self._show(event)
+
+    def _on_motion(self, event) -> None:
+        if self.tip is None:
+            self._show(event)
+        else:
+            self._place(event)
+            self._update_text()
+
+    def _on_leave(self, _event=None) -> None:
+        if self.tip is not None:
+            try:
+                self.tip.destroy()
+            except Exception:
+                pass
+        self.tip = None
+        self.label = None
+
+    def _show(self, event) -> None:
+        text = self.text_provider()
+        if not text:
+            return
+        self.tip = tk.Toplevel(self.parent)
+        self.tip.wm_overrideredirect(True)
+        self.tip.attributes("-topmost", True)
+        self.tip.configure(bg="#1E1E1E")
+        self.label = tk.Label(
+            self.tip,
+            text=text,
+            justify="left",
+            bg="#1E1E1E",
+            fg="#F2F2F2",
+            relief="solid",
+            bd=1,
+            padx=8,
+            pady=5,
+            font=("Segoe UI", 9),
+        )
+        self.label.pack()
+        self._place(event)
+
+    def _update_text(self) -> None:
+        if self.label is None:
+            return
+        try:
+            self.label.configure(text=self.text_provider())
+        except Exception:
+            pass
+
+    def _place(self, event) -> None:
+        if self.tip is None:
+            return
+        x = int(event.x_root) + 14
+        y = int(event.y_root) + 18
+        self.tip.geometry(f"+{x}+{y}")
+
+
 I18N = {
     "en": {
         "status_waiting_start": "Waiting for Start",
@@ -246,6 +319,7 @@ I18N = {
         "menu_language_en": "English",
         "menu_language_vi": "Tiếng Việt",
         "menu_donate": "Donate for ムKim",
+        "gui_join_discord": "Join us on Discord",
         "menu_copyright": "Copyright",
         "menu_close": "Close",
         "gui_window_title": "PingOverlay Control Center",
@@ -257,6 +331,18 @@ I18N = {
         "gui_options_frame": "Overlay Options",
         "gui_actions_frame": "Actions",
         "gui_developed_by": "Developed by {developer}",
+        "tooltip_show_ping": "Current round-trip latency to the detected game route.",
+        "tooltip_show_loss": "Packet loss rate across recent ping samples.",
+        "tooltip_show_jitter": "Connection stability over the last 60 seconds.",
+        "tooltip_show_minmax": "Lowest and highest latency seen in the current session.",
+        "tooltip_show_fps": "Current rendered frames per second from PresentMon.",
+        "tooltip_show_low1": "1% low FPS for recent smoothness and frame pacing.",
+        "tooltip_show_frametime": "Average frame render time in milliseconds.",
+        "tooltip_show_cpu": "CPU usage currently attributed to the game process.",
+        "tooltip_show_cpu_temp": "Current CPU temperature when a sensor is available.",
+        "tooltip_show_ram": "Game memory usage versus total system RAM, with percentage.",
+        "tooltip_show_vram": "Active GPU memory usage versus total VRAM, with percentage.",
+        "tooltip_show_api": "Detected graphics API used by the game process.",
         "gui_start_prompt_title": "Start monitoring",
         "gui_start_prompt_body": "Choose what to do with the control window after monitoring starts.",
         "gui_start_hide": "Hide to tray",
@@ -341,6 +427,7 @@ I18N = {
         "menu_language_en": "English",
         "menu_language_vi": "Tiếng Việt",
         "menu_donate": "Donate for ムKim",
+        "gui_join_discord": "Join us on Discord",
         "menu_copyright": "Bản quyền",
         "menu_close": "Đóng",
         "gui_window_title": "Bảng điều khiển PingOverlay",
@@ -352,6 +439,18 @@ I18N = {
         "gui_options_frame": "Tùy chọn Overlay",
         "gui_actions_frame": "Hành động",
         "gui_developed_by": "Phát triển bởi {developer}",
+        "tooltip_show_ping": "Độ trễ round-trip hiện tại tới route game đang được phát hiện.",
+        "tooltip_show_loss": "Tỷ lệ mất gói dựa trên các mẫu ping gần đây.",
+        "tooltip_show_jitter": "Độ ổn định kết nối trong 60 giây gần nhất.",
+        "tooltip_show_minmax": "Độ trễ thấp nhất và cao nhất trong phiên hiện tại.",
+        "tooltip_show_fps": "FPS render hiện tại lấy từ PresentMon.",
+        "tooltip_show_low1": "1% low FPS để phản ánh độ mượt và frame pacing gần đây.",
+        "tooltip_show_frametime": "Thời gian render khung hình trung bình theo mili giây.",
+        "tooltip_show_cpu": "Mức sử dụng CPU hiện tại của process game.",
+        "tooltip_show_cpu_temp": "Nhiệt độ CPU hiện tại nếu máy có sensor hỗ trợ.",
+        "tooltip_show_ram": "Dung lượng RAM game đang dùng so với tổng RAM hệ thống, kèm phần trăm.",
+        "tooltip_show_vram": "Dung lượng VRAM đang dùng trên GPU active so với tổng VRAM, kèm phần trăm.",
+        "tooltip_show_api": "Graphics API được phát hiện từ process game.",
         "gui_start_prompt_title": "Bắt đầu theo dõi",
         "gui_start_prompt_body": "Chọn cách xử lý cửa sổ điều khiển sau khi bắt đầu monitoring.",
         "gui_start_hide": "Ẩn xuống tray",
@@ -618,10 +717,25 @@ class ControlPanel:
             "show_vram": "menu_show_vram",
             "show_api": "menu_show_api",
         }
+        self._option_tooltip_keys = {
+            "show_ping": "tooltip_show_ping",
+            "show_loss": "tooltip_show_loss",
+            "show_jitter": "tooltip_show_jitter",
+            "show_minmax": "tooltip_show_minmax",
+            "show_fps": "tooltip_show_fps",
+            "show_low1": "tooltip_show_low1",
+            "show_frametime": "tooltip_show_frametime",
+            "show_cpu": "tooltip_show_cpu",
+            "show_cpu_temp": "tooltip_show_cpu_temp",
+            "show_ram": "tooltip_show_ram",
+            "show_vram": "tooltip_show_vram",
+            "show_api": "tooltip_show_api",
+        }
 
         self.window = tk.Toplevel(master)
-        self.window.geometry("500x560")
-        self.window.minsize(470, 545)
+        self.window.geometry("500x530")
+        self.window.minsize(470, 515)
+        self.window.resizable(False, False)
         self.window.protocol("WM_DELETE_WINDOW", self._on_close_requested)
         _apply_window_icon(self.window)
 
@@ -635,9 +749,15 @@ class ControlPanel:
 
         top_row = ttk.Frame(root)
         top_row.pack(fill="x")
+        top_row.columnconfigure(0, weight=1)
+        top_row.columnconfigure(1, weight=1)
 
-        self.language_frame = ttk.LabelFrame(top_row, padding=10)
-        self.language_frame.pack(side="left", fill="x", expand=True, padx=(0, 8))
+        left_column = ttk.Frame(top_row)
+        left_column.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
+        left_column.columnconfigure(0, weight=1)
+
+        self.language_frame = ttk.LabelFrame(left_column, padding=6)
+        self.language_frame.grid(row=0, column=0, sticky="ew")
         self.language_var = tk.StringVar(value=lang_code(app))
         self.lang_en = ttk.Radiobutton(
             self.language_frame,
@@ -654,26 +774,32 @@ class ControlPanel:
         self.lang_en.pack(side="left", padx=(0, 12))
         self.lang_vi.pack(side="left")
 
-        self.monitoring_frame = ttk.LabelFrame(top_row, padding=10)
-        self.monitoring_frame.pack(side="left", fill="x", expand=True)
+        self.actions_frame = ttk.LabelFrame(left_column, padding=5)
+        self.actions_frame.grid(row=1, column=0, sticky="ew", pady=(4, 0))
+        self.donate_button = ttk.Label(self.actions_frame, anchor="center")
+        self.donate_button.pack(fill="x")
+        self.donate_button.bind("<Button-1>", self._on_donate_clicked)
+        self._donate_photo = _load_ui_photo(DONATE_PNG, 180, 42)
+
+        self.monitoring_frame = ttk.LabelFrame(top_row, padding=8)
+        self.monitoring_frame.grid(row=0, column=1, sticky="nsew")
         self.status_caption = ttk.Label(self.monitoring_frame)
         self.status_caption.grid(row=0, column=0, sticky="w")
         self.status_value = ttk.Label(self.monitoring_frame, font=("Segoe UI", 10, "bold"))
-        self.status_value.grid(row=1, column=0, sticky="w", pady=(2, 8))
+        self.status_value.grid(row=1, column=0, sticky="w", pady=(2, 6))
 
         buttons = ttk.Frame(self.monitoring_frame)
-        buttons.grid(row=2, column=0, sticky="ew")
-        buttons.columnconfigure(0, weight=1)
-        buttons.columnconfigure(1, weight=1)
+        buttons.grid(row=2, column=0, pady=(2, 0))
         self.start_button = ttk.Button(buttons, command=self._on_start_clicked)
-        self.start_button.grid(row=0, column=0, sticky="ew", padx=(0, 4))
+        self.start_button.grid(row=0, column=0, padx=(0, 4))
         self.stop_button = ttk.Button(buttons, command=self._on_stop_clicked)
-        self.stop_button.grid(row=0, column=1, sticky="ew", padx=(4, 0))
+        self.stop_button.grid(row=0, column=1, padx=(4, 0))
 
         self.options_frame = ttk.LabelFrame(root, padding=10)
         self.options_frame.pack(fill="x", pady=(12, 10))
         self.option_vars: dict[str, tk.BooleanVar] = {}
         self.option_buttons: dict[str, ttk.Checkbutton] = {}
+        self.option_tooltips: dict[str, _HoverTooltip] = {}
         option_order = [
             "show_ping", "show_loss",
             "show_jitter", "show_minmax",
@@ -694,17 +820,21 @@ class ControlPanel:
             btn.grid(row=row, column=col, sticky="w", padx=(0, 16), pady=4)
             self.option_vars[attr] = var
             self.option_buttons[attr] = btn
+            tooltip = _HoverTooltip(
+                self.window,
+                lambda name=attr: tr(self.app, self._option_tooltip_keys[name]),
+            )
+            tooltip.bind(btn)
+            self.option_tooltips[attr] = tooltip
         self.options_frame.columnconfigure(0, weight=1)
         self.options_frame.columnconfigure(1, weight=1)
 
-        self.actions_frame = ttk.LabelFrame(root, padding=10)
-        self.actions_frame.pack(fill="x", pady=(0, 6))
-        self.donate_button = ttk.Label(self.actions_frame, anchor="center")
-        self.donate_button.pack(fill="x", pady=(2, 0))
-        self.donate_button.bind("<Button-1>", self._on_donate_clicked)
-        self._donate_photo = _load_ui_photo(DONATE_PNG, 220, 80)
         self.developed_by_label = ttk.Label(root, anchor="center", justify="center")
         self.developed_by_label.pack(fill="x", pady=(6, 0))
+        self.discord_button = ttk.Label(root, anchor="center")
+        self.discord_button.pack(fill="x", pady=(4, 0))
+        self.discord_button.bind("<Button-1>", self._on_discord_clicked)
+        self._discord_photo = _load_ui_photo(DISCORD_PNG, 180, 36)
 
         self.refresh()
         self.window.after(0, self._configure_native_window)
@@ -756,13 +886,17 @@ class ControlPanel:
             state=("normal" if self.app.monitoring_enabled else "disabled"),
         )
         self.options_frame.configure(text=tr(self.app, "gui_options_frame"))
-        self.actions_frame.configure(text=tr(self.app, "gui_actions_frame"))
+        self.actions_frame.configure(text="")
         self.lang_en.configure(text=tr(self.app, "menu_language_en"))
         self.lang_vi.configure(text=tr(self.app, "menu_language_vi"))
         if self._donate_photo is not None:
             self.donate_button.configure(image=self._donate_photo, text="", cursor="hand2")
         else:
             self.donate_button.configure(text=tr(self.app, "menu_donate"), image="", cursor="hand2")
+        if self._discord_photo is not None:
+            self.discord_button.configure(image=self._discord_photo, text="", cursor="hand2")
+        else:
+            self.discord_button.configure(text=tr(self.app, "gui_join_discord"), image="", cursor="hand2")
         self.developed_by_label.configure(
             text=tr(self.app, "gui_developed_by", developer=DEVELOPER_NAME)
         )
@@ -803,8 +937,8 @@ class ControlPanel:
     def _on_donate_clicked(self, _event=None) -> None:
         self.actions["donate"]()
 
-    def _on_donate_clicked(self) -> None:
-        self.actions["donate"]()
+    def _on_discord_clicked(self, _event=None) -> None:
+        self.actions["discord"]()
 
     def _on_close_requested(self) -> None:
         choice = self._prompt_close_behavior()
@@ -1487,6 +1621,12 @@ def make_tray_icon(overlay: Overlay, options: OverlayOptions,
         except Exception as e:
             print(f"[tray] donate open error: {e}")
 
+    def on_discord(icon, item=None):
+        try:
+            webbrowser.open(DISCORD_URL, new=2)
+        except Exception as e:
+            print(f"[tray] discord open error: {e}")
+
     def _build_options_menu():
         return pystray.Menu(
             pystray.MenuItem(menu_text("menu_show_ping"), make_toggle("show_ping"),
@@ -1598,6 +1738,7 @@ def make_tray_icon(overlay: Overlay, options: OverlayOptions,
         "start_monitoring": lambda: _set_monitoring_enabled(True),
         "stop_monitoring": lambda: _set_monitoring_enabled(False),
         "donate": lambda: on_donate(None),
+        "discord": lambda: on_discord(None),
         "show_control_panel": _show_control_panel,
         "quit_app": lambda: overlay.root.after(0, _shutdown_app),
         "refresh_ui": _refresh_ui,
