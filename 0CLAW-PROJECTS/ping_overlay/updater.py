@@ -47,6 +47,27 @@ def is_supported_runtime() -> bool:
     return bool(getattr(sys, "frozen", False)) and sys.executable.lower().endswith(".exe")
 
 
+def cleanup_stale_update_artifacts() -> None:
+    if not is_supported_runtime():
+        return
+    target_exe = Path(sys.executable).resolve()
+    stale_paths = [
+        Path(str(target_exe) + ".new"),
+        Path(str(target_exe) + ".bad"),
+    ]
+    for path in stale_paths:
+        try:
+            path.unlink(missing_ok=True)
+        except Exception:
+            pass
+    backup = Path(str(target_exe) + ".old")
+    try:
+        if backup.exists() and target_exe.exists():
+            backup.unlink(missing_ok=True)
+    except Exception:
+        pass
+
+
 def _parse_version(text: str) -> tuple[int, ...]:
     match = re.search(r"(\d+(?:\.\d+)+)", text or "")
     if not match:
@@ -175,6 +196,7 @@ def install_downloaded_update(download_path: Path) -> None:
         raise RuntimeError("Auto-update is only supported from the packaged .exe build")
 
     target_exe = Path(sys.executable).resolve()
+    log_path = Path(tempfile.gettempdir()) / f"pingoverlay-updater-{os.getpid()}.log"
     helper_path = Path(tempfile.gettempdir()) / f"pingoverlay-apply-update-{os.getpid()}.ps1"
     helper_path.write_text(
         "\n".join(
@@ -182,20 +204,56 @@ def install_downloaded_update(download_path: Path) -> None:
                 "param(",
                 "  [int]$WaitPid,",
                 "  [string]$SourcePath,",
-                "  [string]$TargetPath",
+                "  [string]$TargetPath,",
+                "  [string]$LogPath",
                 ")",
-                "$ErrorActionPreference = 'SilentlyContinue'",
+                "$ErrorActionPreference = 'Continue'",
+                "function Write-Log([string]$Message) {",
+                "  Add-Content -Path $LogPath -Value ((Get-Date -Format o) + ' ' + $Message)",
+                "}",
+                "Write-Log 'helper started'",
                 "for ($i = 0; $i -lt 240; $i++) {",
                 "  if (-not (Get-Process -Id $WaitPid -ErrorAction SilentlyContinue)) { break }",
                 "  Start-Sleep -Milliseconds 500",
                 "}",
+                "$targetDir = Split-Path -Parent $TargetPath",
                 "$backup = \"$TargetPath.old\"",
+                "$staged = \"$TargetPath.new\"",
+                "$failed = \"$TargetPath.bad\"",
+                "Write-Log ('target=' + $TargetPath)",
+                "if (Test-Path -LiteralPath $staged) { Remove-Item -LiteralPath $staged -Force }",
+                "Copy-Item -LiteralPath $SourcePath -Destination $staged -Force",
+                "Write-Log 'copied update to staged path'",
                 "if (Test-Path -LiteralPath $backup) { Remove-Item -LiteralPath $backup -Force }",
                 "if (Test-Path -LiteralPath $TargetPath) { Move-Item -LiteralPath $TargetPath -Destination $backup -Force }",
-                "Move-Item -LiteralPath $SourcePath -Destination $TargetPath -Force",
-                "Start-Process -FilePath $TargetPath",
+                "Move-Item -LiteralPath $staged -Destination $TargetPath -Force",
+                "Write-Log 'swapped executable'",
                 "Start-Sleep -Seconds 2",
-                "if (Test-Path -LiteralPath $backup) { Remove-Item -LiteralPath $backup -Force }",
+                "$started = $false",
+                "for ($attempt = 1; $attempt -le 3; $attempt++) {",
+                "  try {",
+                "    Write-Log ('launch attempt ' + $attempt)",
+                "    $proc = Start-Process -FilePath $TargetPath -WorkingDirectory $targetDir -PassThru",
+                "    Start-Sleep -Seconds 6",
+                "    if (-not $proc.HasExited) {",
+                "      $started = $true",
+                "      Write-Log 'launch appears successful'",
+                "      break",
+                "    }",
+                "    Write-Log ('launch exited early with code ' + $proc.ExitCode)",
+                "  } catch {",
+                "    Write-Log ('launch error: ' + $_.Exception.Message)",
+                "  }",
+                "  Start-Sleep -Seconds 3",
+                "}",
+                "if (-not $started -and (Test-Path -LiteralPath $backup)) {",
+                "  Write-Log 'new build failed to stay up; rolling back backup'",
+                "  if (Test-Path -LiteralPath $failed) { Remove-Item -LiteralPath $failed -Force }",
+                "  if (Test-Path -LiteralPath $TargetPath) { Move-Item -LiteralPath $TargetPath -Destination $failed -Force }",
+                "  Move-Item -LiteralPath $backup -Destination $TargetPath -Force",
+                "  Start-Process -FilePath $TargetPath -WorkingDirectory $targetDir",
+                "}",
+                "try { Remove-Item -LiteralPath $SourcePath -Force } catch {}",
                 "Remove-Item -LiteralPath $PSCommandPath -Force",
             ]
         ),
@@ -216,6 +274,7 @@ def install_downloaded_update(download_path: Path) -> None:
             str(os.getpid()),
             str(download_path),
             str(target_exe),
+            str(log_path),
         ],
         close_fds=True,
         creationflags=creationflags,

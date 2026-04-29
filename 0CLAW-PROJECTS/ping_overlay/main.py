@@ -50,7 +50,13 @@ from app_version import __version__
 from hotkey import GlobalHotkey
 import autostart
 from metrics import MemoryMonitor, RollingWindow, fmt_ratio_bytes
-from updater import check_for_update, download_update, install_downloaded_update, is_supported_runtime
+from updater import (
+    check_for_update,
+    cleanup_stale_update_artifacts,
+    download_update,
+    install_downloaded_update,
+    is_supported_runtime,
+)
 
 
 # Process KHÔNG được coi là game
@@ -1243,6 +1249,7 @@ def supervisor_loop(overlay: Overlay, app: AppState, tray: pystray.Icon):
 
 def main():
     cfg = app_config.load()
+    cleanup_stale_update_artifacts()
     print(f"[main] version: {__version__}")
     print(f"[main] config path: {app_config.config_path()}")
     print(f"[main] target_process: {cfg.get('target_process')}  "
