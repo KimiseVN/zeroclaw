@@ -252,6 +252,7 @@ I18N = {
         "gui_status_label": "Status",
         "gui_options_frame": "Overlay Options",
         "gui_actions_frame": "Actions",
+        "gui_developed_by": "Developed by {developer}",
         "gui_start_prompt_title": "Start monitoring",
         "gui_start_prompt_body": "Choose what to do with the control window after monitoring starts.",
         "gui_start_hide": "Hide to tray",
@@ -344,6 +345,7 @@ I18N = {
         "gui_status_label": "Trạng thái",
         "gui_options_frame": "Tùy chọn Overlay",
         "gui_actions_frame": "Hành động",
+        "gui_developed_by": "Phát triển bởi {developer}",
         "gui_start_prompt_title": "Bắt đầu theo dõi",
         "gui_start_prompt_body": "Chọn cách xử lý cửa sổ điều khiển sau khi bắt đầu monitoring.",
         "gui_start_hide": "Ẩn xuống tray",
@@ -606,18 +608,18 @@ class ControlPanel:
         }
 
         self.window = tk.Toplevel(master)
-        self.window.geometry("480x520")
-        self.window.minsize(440, 500)
+        self.window.geometry("500x535")
+        self.window.minsize(470, 520)
         self.window.protocol("WM_DELETE_WINDOW", self._on_close_requested)
         _apply_window_icon(self.window)
 
         root = ttk.Frame(self.window, padding=14)
         root.pack(fill="both", expand=True)
 
-        self.heading_label = ttk.Label(root, font=("Segoe UI", 15, "bold"))
-        self.heading_label.pack(anchor="w")
-        self.subheading_label = ttk.Label(root, justify="left")
-        self.subheading_label.pack(anchor="w", pady=(4, 12))
+        self.heading_label = ttk.Label(root, font=("Segoe UI", 15, "bold"), anchor="center", justify="center")
+        self.heading_label.pack(fill="x")
+        self.subheading_label = ttk.Label(root, anchor="center", justify="center")
+        self.subheading_label.pack(fill="x", pady=(4, 12))
 
         top_row = ttk.Frame(root)
         top_row.pack(fill="x")
@@ -657,7 +659,7 @@ class ControlPanel:
         self.stop_button.grid(row=0, column=1, sticky="ew", padx=(4, 0))
 
         self.options_frame = ttk.LabelFrame(root, padding=10)
-        self.options_frame.pack(fill="both", expand=True, pady=(12, 12))
+        self.options_frame.pack(fill="x", pady=(12, 10))
         self.option_vars: dict[str, tk.BooleanVar] = {}
         self.option_buttons: dict[str, ttk.Checkbutton] = {}
         option_order = [
@@ -683,11 +685,13 @@ class ControlPanel:
         self.options_frame.columnconfigure(1, weight=1)
 
         self.actions_frame = ttk.LabelFrame(root, padding=10)
-        self.actions_frame.pack(fill="x")
+        self.actions_frame.pack(fill="x", pady=(0, 6))
         self.donate_button = ttk.Label(self.actions_frame, anchor="center")
-        self.donate_button.pack(fill="x")
+        self.donate_button.pack(fill="x", pady=(2, 0))
         self.donate_button.bind("<Button-1>", self._on_donate_clicked)
         self._donate_photo = _load_ui_photo(DONATE_PNG, 220, 80)
+        self.developed_by_label = ttk.Label(root, anchor="center", justify="center")
+        self.developed_by_label.pack(fill="x", pady=(6, 0))
 
         self.refresh()
         self.window.after(0, self._configure_native_window)
@@ -746,6 +750,9 @@ class ControlPanel:
             self.donate_button.configure(image=self._donate_photo, text="", cursor="hand2")
         else:
             self.donate_button.configure(text=tr(self.app, "menu_donate"), image="", cursor="hand2")
+        self.developed_by_label.configure(
+            text=tr(self.app, "gui_developed_by", developer=DEVELOPER_NAME)
+        )
 
         for attr, var in self.option_vars.items():
             var.set(bool(getattr(self.options, attr)))
