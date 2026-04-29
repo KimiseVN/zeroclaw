@@ -13,7 +13,7 @@
     "check_on_startup": true,
     "auto_install": true,
     "include_prerelease": false,
-    "repo": "zeroclaw-labs/zeroclaw",
+    "repo": "KimiseVN/zeroclaw",
     "tag_prefix": "ping-overlay-v",
     "asset_name": "PingOverlay.exe"
   },

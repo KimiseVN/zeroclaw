@@ -1,5 +1,5 @@
 param(
-    [string]$Repo = "zeroclaw-labs/zeroclaw",
+    [string]$Repo = "KimiseVN/zeroclaw",
     [string]$TagPrefix = "ping-overlay-v",
     [string]$AssetName = "PingOverlay.exe",
     [switch]$Draft,

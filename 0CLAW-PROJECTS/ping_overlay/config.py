@@ -34,7 +34,7 @@ DEFAULTS: dict[str, Any] = {
         "check_on_startup": True,
         "auto_install": True,
         "include_prerelease": False,
-        "repo": "zeroclaw-labs/zeroclaw",
+        "repo": "KimiseVN/zeroclaw",
         "tag_prefix": "ping-overlay-v",
         "asset_name": "PingOverlay.exe",
     },
