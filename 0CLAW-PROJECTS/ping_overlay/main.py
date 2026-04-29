@@ -784,6 +784,15 @@ def make_tray_icon(overlay: Overlay, options: OverlayOptions,
     def _display_proc_name() -> str:
         return tr(app, "process_waiting") if app.proc_name == "(waiting)" else app.proc_name
 
+    def menu_text(key: str, **kwargs):
+        def _label(item):
+            resolved = {
+                name: (value() if callable(value) else value)
+                for name, value in kwargs.items()
+            }
+            return tr(app, key, **resolved)
+        return _label
+
     def on_click(icon, item=None):
         overlay.root.after(0, overlay.toggle)
 
@@ -959,74 +968,74 @@ def make_tray_icon(overlay: Overlay, options: OverlayOptions,
             print(f"[tray] donate open error: {e}")
 
     options_menu = pystray.Menu(
-        pystray.MenuItem(tr(app, "menu_show_ping"), make_toggle("show_ping"),
+        pystray.MenuItem(menu_text("menu_show_ping"), make_toggle("show_ping"),
                          checked=lambda i: options.show_ping),
-        pystray.MenuItem(tr(app, "menu_show_loss"), make_toggle("show_loss"),
+        pystray.MenuItem(menu_text("menu_show_loss"), make_toggle("show_loss"),
                          checked=lambda i: options.show_loss),
-        pystray.MenuItem(tr(app, "menu_show_jitter"), make_toggle("show_jitter"),
+        pystray.MenuItem(menu_text("menu_show_jitter"), make_toggle("show_jitter"),
                          checked=lambda i: options.show_jitter),
-        pystray.MenuItem(tr(app, "menu_show_minmax"), make_toggle("show_minmax"),
+        pystray.MenuItem(menu_text("menu_show_minmax"), make_toggle("show_minmax"),
                          checked=lambda i: options.show_minmax),
         pystray.Menu.SEPARATOR,
-        pystray.MenuItem(tr(app, "menu_show_fps"), make_toggle("show_fps"),
+        pystray.MenuItem(menu_text("menu_show_fps"), make_toggle("show_fps"),
                          checked=lambda i: options.show_fps),
-        pystray.MenuItem(tr(app, "menu_show_low1"), make_toggle("show_low1"),
+        pystray.MenuItem(menu_text("menu_show_low1"), make_toggle("show_low1"),
                          checked=lambda i: options.show_low1),
-        pystray.MenuItem(tr(app, "menu_show_frametime"), make_toggle("show_frametime"),
+        pystray.MenuItem(menu_text("menu_show_frametime"), make_toggle("show_frametime"),
                          checked=lambda i: options.show_frametime),
         pystray.Menu.SEPARATOR,
-        pystray.MenuItem(tr(app, "menu_show_ram"), make_toggle("show_ram"),
+        pystray.MenuItem(menu_text("menu_show_ram"), make_toggle("show_ram"),
                          checked=lambda i: options.show_ram),
-        pystray.MenuItem(tr(app, "menu_show_vram"), make_toggle("show_vram"),
+        pystray.MenuItem(menu_text("menu_show_vram"), make_toggle("show_vram"),
                          checked=lambda i: options.show_vram),
-        pystray.MenuItem(tr(app, "menu_show_api"), make_toggle("show_api"),
+        pystray.MenuItem(menu_text("menu_show_api"), make_toggle("show_api"),
                          checked=lambda i: options.show_api),
     )
 
     language_menu = pystray.Menu(
         pystray.MenuItem(
-            tr(app, "menu_language_en"),
+            menu_text("menu_language_en"),
             lambda icon, item: on_set_language("en"),
             checked=lambda i: lang_code(app) == "en",
         ),
         pystray.MenuItem(
-            tr(app, "menu_language_vi"),
+            menu_text("menu_language_vi"),
             lambda icon, item: on_set_language("vi"),
             checked=lambda i: lang_code(app) == "vi",
         ),
     )
 
     menu = pystray.Menu(
-        pystray.MenuItem(lambda i: tr(app, "menu_process", value=_display_proc_name()), None, enabled=False),
-        pystray.MenuItem(lambda i: tr(app, "menu_target", value=app.cfg.get('target_process') or tr(app, "target_auto")),
+        pystray.MenuItem(menu_text("menu_process", value=_display_proc_name), None, enabled=False),
+        pystray.MenuItem(menu_text("menu_target", value=lambda: app.cfg.get('target_process') or tr(app, "target_auto")),
                          None, enabled=False),
-        pystray.MenuItem(lambda i: tr(app, "menu_api", value=app.api), None, enabled=False),
-        pystray.MenuItem(lambda i: tr(app, "menu_status", value=session_status_text(app)),
+        pystray.MenuItem(menu_text("menu_api", value=lambda: app.api), None, enabled=False),
+        pystray.MenuItem(menu_text("menu_status", value=lambda: session_status_text(app)),
                          None, enabled=False),
         pystray.Menu.SEPARATOR,
-        pystray.MenuItem(tr(app, "menu_start_monitoring"), on_start_monitoring,
+        pystray.MenuItem(menu_text("menu_start_monitoring"), on_start_monitoring,
                          enabled=lambda i: not app.monitoring_enabled),
-        pystray.MenuItem(tr(app, "menu_stop_monitoring"), on_stop_monitoring,
+        pystray.MenuItem(menu_text("menu_stop_monitoring"), on_stop_monitoring,
                          enabled=lambda i: app.monitoring_enabled),
         pystray.Menu.SEPARATOR,
-        pystray.MenuItem(tr(app, "menu_choose_target"), on_choose_target),
-        pystray.MenuItem(tr(app, "menu_use_auto_detect"), on_use_auto_detect,
+        pystray.MenuItem(menu_text("menu_choose_target"), on_choose_target),
+        pystray.MenuItem(menu_text("menu_use_auto_detect"), on_use_auto_detect,
                          checked=lambda i: not (app.cfg.get("target_process") or "").strip()),
         pystray.Menu.SEPARATOR,
-        pystray.MenuItem(tr(app, "menu_options"), options_menu),
-        pystray.MenuItem(tr(app, "menu_check_updates"), on_check_updates,
+        pystray.MenuItem(menu_text("menu_options"), options_menu),
+        pystray.MenuItem(menu_text("menu_check_updates"), on_check_updates,
                          enabled=lambda i: not app.update_in_progress),
-        pystray.MenuItem(tr(app, "menu_auto_update"), on_toggle_auto_update,
+        pystray.MenuItem(menu_text("menu_auto_update"), on_toggle_auto_update,
                          checked=lambda i: bool((app.cfg.get("update") or {}).get("check_on_startup", True))),
-        pystray.MenuItem(tr(app, "menu_start_with_windows"), on_toggle_autostart,
+        pystray.MenuItem(menu_text("menu_start_with_windows"), on_toggle_autostart,
                          checked=lambda i: bool(app.cfg.get("autostart", False))),
-        pystray.MenuItem(tr(app, "menu_reset_position"), on_reset_position),
-        pystray.MenuItem(lambda i: tr(app, "menu_hotkey", value=app.hotkey_label), None, enabled=False),
-        pystray.MenuItem(tr(app, "menu_language"), language_menu),
-        pystray.MenuItem(tr(app, "menu_donate"), on_donate),
-        pystray.MenuItem(tr(app, "menu_copyright"), on_copyright),
+        pystray.MenuItem(menu_text("menu_reset_position"), on_reset_position),
+        pystray.MenuItem(menu_text("menu_hotkey", value=lambda: app.hotkey_label), None, enabled=False),
+        pystray.MenuItem(menu_text("menu_language"), language_menu),
+        pystray.MenuItem(menu_text("menu_donate"), on_donate),
+        pystray.MenuItem(menu_text("menu_copyright"), on_copyright),
         pystray.Menu.SEPARATOR,
-        pystray.MenuItem(tr(app, "menu_close"), on_quit),
+        pystray.MenuItem(menu_text("menu_close"), on_quit),
     )
     icon = pystray.Icon("PingOverlay", ICON_RED, "PingOverlay (waiting)", menu)
     icon.default_action = on_click
