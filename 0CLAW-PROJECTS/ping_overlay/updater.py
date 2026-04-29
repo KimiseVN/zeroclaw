@@ -215,11 +215,12 @@ def download_update(info: UpdateInfo) -> Path:
     return temp_path
 
 
-def install_downloaded_update(download_path: Path) -> None:
+def install_downloaded_update(download_path: Path, target_asset_name: str) -> None:
     if not is_supported_runtime():
         raise RuntimeError("Auto-update is only supported from the packaged .exe build")
 
-    target_exe = Path(sys.executable).resolve()
+    current_exe = Path(sys.executable).resolve()
+    target_exe = current_exe.with_name(target_asset_name)
     log_path = Path(tempfile.gettempdir()) / f"pingoverlay-updater-{os.getpid()}.log"
     stamp_path = Path(tempfile.gettempdir()) / f"pingoverlay-startup-{os.getpid()}.ok"
     helper_path = Path(tempfile.gettempdir()) / f"pingoverlay-apply-update-{os.getpid()}.ps1"
@@ -229,6 +230,7 @@ def install_downloaded_update(download_path: Path) -> None:
                 "param(",
                 "  [int]$WaitPid,",
                 "  [string]$SourcePath,",
+                "  [string]$CurrentPath,",
                 "  [string]$TargetPath,",
                 "  [string]$LogPath,",
                 "  [string]$StampPath",
@@ -243,16 +245,23 @@ def install_downloaded_update(download_path: Path) -> None:
                 "  Start-Sleep -Milliseconds 500",
                 "}",
                 "$targetDir = Split-Path -Parent $TargetPath",
+                "$currentEqualsTarget = ([System.StringComparer]::OrdinalIgnoreCase.Equals($CurrentPath, $TargetPath))",
                 "$backup = \"$TargetPath.old\"",
                 "$staged = \"$TargetPath.new\"",
                 "$failed = \"$TargetPath.bad\"",
+                "$oldFailed = \"$CurrentPath.bad\"",
+                "Write-Log ('current=' + $CurrentPath)",
                 "Write-Log ('target=' + $TargetPath)",
                 "if (Test-Path -LiteralPath $StampPath) { Remove-Item -LiteralPath $StampPath -Force }",
                 "if (Test-Path -LiteralPath $staged) { Remove-Item -LiteralPath $staged -Force }",
                 "Copy-Item -LiteralPath $SourcePath -Destination $staged -Force",
                 "Write-Log 'copied update to staged path'",
-                "if (Test-Path -LiteralPath $backup) { Remove-Item -LiteralPath $backup -Force }",
-                "if (Test-Path -LiteralPath $TargetPath) { Move-Item -LiteralPath $TargetPath -Destination $backup -Force }",
+                "if ($currentEqualsTarget) {",
+                "  if (Test-Path -LiteralPath $backup) { Remove-Item -LiteralPath $backup -Force }",
+                "  if (Test-Path -LiteralPath $TargetPath) { Move-Item -LiteralPath $TargetPath -Destination $backup -Force }",
+                "} else {",
+                "  if (Test-Path -LiteralPath $TargetPath) { Remove-Item -LiteralPath $TargetPath -Force }",
+                "}",
                 "Move-Item -LiteralPath $staged -Destination $TargetPath -Force",
                 "Write-Log 'swapped executable'",
                 "Start-Sleep -Seconds 2",
@@ -286,12 +295,23 @@ def install_downloaded_update(download_path: Path) -> None:
                 "  }",
                 "  Start-Sleep -Seconds 3",
                 "}",
-                "if (-not $started -and (Test-Path -LiteralPath $backup)) {",
+                "if ($started) {",
+                "  Write-Log 'update finalized'",
+                "  if (-not $currentEqualsTarget -and (Test-Path -LiteralPath $CurrentPath)) {",
+                "    try { Remove-Item -LiteralPath $CurrentPath -Force } catch { Write-Log ('old exe cleanup failed: ' + $_.Exception.Message) }",
+                "  }",
+                "  if (Test-Path -LiteralPath $backup) { Remove-Item -LiteralPath $backup -Force }",
+                "} elseif ($currentEqualsTarget -and (Test-Path -LiteralPath $backup)) {",
                 "  Write-Log 'new build failed to stay up; rolling back backup'",
                 "  if (Test-Path -LiteralPath $failed) { Remove-Item -LiteralPath $failed -Force }",
                 "  if (Test-Path -LiteralPath $TargetPath) { Move-Item -LiteralPath $TargetPath -Destination $failed -Force }",
                 "  Move-Item -LiteralPath $backup -Destination $TargetPath -Force",
                 "  Start-Process -FilePath $TargetPath -WorkingDirectory $targetDir",
+                "} elseif (-not $currentEqualsTarget) {",
+                "  Write-Log 'new version failed to start; preserving old exe and discarding new one'",
+                "  if (Test-Path -LiteralPath $failed) { Remove-Item -LiteralPath $failed -Force }",
+                "  if (Test-Path -LiteralPath $TargetPath) { Move-Item -LiteralPath $TargetPath -Destination $failed -Force }",
+                "  if (Test-Path -LiteralPath $CurrentPath) { Start-Process -FilePath $CurrentPath -WorkingDirectory (Split-Path -Parent $CurrentPath) }",
                 "}",
                 "try { Remove-Item -LiteralPath $StampPath -Force } catch {}",
                 "try { Remove-Item -LiteralPath $SourcePath -Force } catch {}",
@@ -314,6 +334,7 @@ def install_downloaded_update(download_path: Path) -> None:
             str(helper_path),
             str(os.getpid()),
             str(download_path),
+            str(current_exe),
             str(target_exe),
             str(log_path),
             str(stamp_path),

@@ -377,7 +377,7 @@ def maybe_check_for_updates(
 
             print(f"[update] downloading {info.asset_name} from {info.repo} tag {info.tag}")
             download_path = download_update(info)
-            install_downloaded_update(download_path)
+            install_downloaded_update(download_path, info.asset_name)
 
             def finish_and_exit():
                 messagebox.showinfo(
