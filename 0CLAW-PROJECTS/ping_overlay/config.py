@@ -36,7 +36,8 @@ DEFAULTS: dict[str, Any] = {
         "include_prerelease": False,
         "repo": "KimiseVN/zeroclaw",
         "tag_prefix": "ping-overlay-v",
-        "asset_name": "PingOverlay.exe",
+        "asset_prefix": "PingOverlay-v",
+        "asset_extension": ".exe",
     },
     "options": {
         "show_ping": True,

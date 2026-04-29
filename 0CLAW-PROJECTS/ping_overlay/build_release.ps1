@@ -7,6 +7,8 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $versionFile = Join-Path $root "app_version.py"
 $specFile = Join-Path $root "PingOverlay.spec"
+$assetPrefix = "PingOverlay-v"
+$assetExtension = ".exe"
 
 if (-not (Test-Path $versionFile)) {
     throw "Missing version file: $versionFile"
@@ -50,8 +52,15 @@ try {
         throw "Build finished but artifact missing: $distExe"
     }
 
+    Get-ChildItem -Path (Join-Path $root "dist") -Filter ($assetPrefix + "*" + $assetExtension) -ErrorAction SilentlyContinue |
+        Remove-Item -Force -ErrorAction SilentlyContinue
+
+    $versionedAsset = Join-Path $root ("dist\" + $assetPrefix + $nextVersion + $assetExtension)
+    Copy-Item -LiteralPath $distExe -Destination $versionedAsset -Force
+
     Write-Host "Built PingOverlay version $nextVersion"
     Write-Host "Artifact: $distExe"
+    Write-Host "Versioned artifact: $versionedAsset"
 }
 catch {
     Set-Content -Path $versionFile -Value $original -Encoding UTF8

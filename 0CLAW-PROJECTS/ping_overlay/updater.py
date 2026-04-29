@@ -81,15 +81,27 @@ def _json_get(url: str) -> Any:
         return json.load(resp)
 
 
-def _asset_from_release(release: dict, asset_name: str) -> dict | None:
+def _asset_from_release(
+    release: dict,
+    asset_name: str | None,
+    asset_prefix: str,
+    asset_extension: str,
+    version: str,
+) -> dict | None:
     assets = release.get("assets") or []
-    for asset in assets:
-        if (asset.get("name") or "") == asset_name:
-            return asset
-    asset_name_lower = asset_name.lower()
-    for asset in assets:
-        if (asset.get("name") or "").lower() == asset_name_lower:
-            return asset
+    expected_names: list[str] = []
+    if asset_prefix and asset_extension:
+        expected_names.append(f"{asset_prefix}{version}{asset_extension}")
+    if asset_name:
+        expected_names.append(asset_name)
+    for expected_name in expected_names:
+        for asset in assets:
+            if (asset.get("name") or "") == expected_name:
+                return asset
+        expected_name_lower = expected_name.lower()
+        for asset in assets:
+            if (asset.get("name") or "").lower() == expected_name_lower:
+                return asset
     return None
 
 
@@ -108,9 +120,11 @@ def check_for_update(cfg: dict, current_version: str) -> UpdateInfo | None:
 
     repo = (update_cfg.get("repo") or "").strip()
     tag_prefix = (update_cfg.get("tag_prefix") or "").strip().lower()
-    asset_name = (update_cfg.get("asset_name") or "PingOverlay.exe").strip()
+    asset_name = (update_cfg.get("asset_name") or "").strip() or None
+    asset_prefix = (update_cfg.get("asset_prefix") or "PingOverlay-v").strip()
+    asset_extension = (update_cfg.get("asset_extension") or ".exe").strip()
     include_prerelease = bool(update_cfg.get("include_prerelease", False))
-    if not repo or not asset_name:
+    if not repo or (not asset_name and not asset_prefix):
         return None
 
     current = _parse_version(current_version)
@@ -136,16 +150,26 @@ def check_for_update(cfg: dict, current_version: str) -> UpdateInfo | None:
         latest = _parse_version(version_text)
         if not latest or latest <= current:
             continue
-        asset = _asset_from_release(release, asset_name)
+        version_string = ".".join(str(part) for part in latest)
+        asset = _asset_from_release(
+            release,
+            asset_name,
+            asset_prefix,
+            asset_extension,
+            version_string,
+        )
         if asset is None:
-            print(f"[update] latest release {tag} has no asset named {asset_name}")
+            print(
+                "[update] latest release "
+                f"{tag} has no matching asset for version {version_string}"
+            )
             return None
         return UpdateInfo(
-            version=".".join(str(part) for part in latest),
+            version=version_string,
             tag=tag,
             repo=repo,
             release_url=release.get("html_url") or "",
-            asset_name=asset.get("name") or asset_name,
+            asset_name=asset.get("name") or asset_name or f"{asset_prefix}{version_string}{asset_extension}",
             asset_url=asset.get("browser_download_url") or "",
             asset_size=int(asset.get("size") or 0),
             asset_digest=asset.get("digest"),

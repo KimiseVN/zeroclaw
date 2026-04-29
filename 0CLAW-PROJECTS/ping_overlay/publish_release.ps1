@@ -1,7 +1,8 @@
 param(
     [string]$Repo = "KimiseVN/zeroclaw",
     [string]$TagPrefix = "ping-overlay-v",
-    [string]$AssetName = "PingOverlay.exe",
+    [string]$AssetPrefix = "PingOverlay-v",
+    [string]$AssetExtension = ".exe",
     [switch]$Draft,
     [switch]$Prerelease,
     [switch]$SkipBuild,
@@ -18,7 +19,15 @@ if ($PSVersionTable.PSVersion.Major -ge 7) {
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $versionFile = Join-Path $root "app_version.py"
 $buildScript = Join-Path $root "build_release.ps1"
-$distExe = Join-Path $root ("dist\" + $AssetName)
+
+function Get-VersionedAssetName {
+    param(
+        [string]$Version,
+        [string]$Prefix,
+        [string]$Extension
+    )
+    return "$Prefix$Version$Extension"
+}
 
 function Get-AppVersion {
     param([string]$Path)
@@ -77,6 +86,8 @@ try {
     $version = Get-AppVersion -Path $versionFile
     $tag = "$TagPrefix$version"
     $title = "PingOverlay v$version"
+    $assetName = Get-VersionedAssetName -Version $version -Prefix $AssetPrefix -Extension $AssetExtension
+    $distExe = Join-Path $root ("dist\" + $assetName)
 
     if (-not (Test-Path $distExe)) {
         throw "Missing release artifact: $distExe"
@@ -89,19 +100,19 @@ try {
     }
 
     $sha256 = (Get-FileHash -Algorithm SHA256 -Path $distExe).Hash.ToLowerInvariant()
-    $checksumPath = Join-Path $root ("dist\" + $AssetName + ".sha256.txt")
-    Set-Content -Path $checksumPath -Value "$sha256  $AssetName" -Encoding ascii
+    $checksumPath = Join-Path $root ("dist\" + $assetName + ".sha256.txt")
+    Set-Content -Path $checksumPath -Value "$sha256  $assetName" -Encoding ascii
 
     $notesLines = @(
         "PingOverlay release $version",
         '',
         'Assets:',
-        "- $AssetName",
-        "- ${AssetName}.sha256.txt",
+        "- $assetName",
+        "- ${assetName}.sha256.txt",
         '',
         'SHA-256',
         '```text',
-        "$sha256  $AssetName",
+        "$sha256  $assetName",
         '```'
     )
     $notesPath = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("pingoverlay-release-notes-" + $version + ".md")
@@ -139,6 +150,29 @@ try {
     gh @cmd
     if ($LASTEXITCODE -ne 0) {
         throw "gh release create failed"
+    }
+
+    $releasesJson = gh api ("repos/" + $Repo + "/releases?per_page=100")
+    if ($LASTEXITCODE -ne 0) {
+        throw "Could not list existing releases for cleanup"
+    }
+    $releases = $releasesJson | ConvertFrom-Json
+    foreach ($release in $releases) {
+        $oldTag = [string]$release.tag_name
+        if ([string]::IsNullOrWhiteSpace($oldTag)) {
+            continue
+        }
+        if (-not $oldTag.StartsWith($TagPrefix)) {
+            continue
+        }
+        if ($oldTag -eq $tag) {
+            continue
+        }
+        gh release delete $oldTag --repo $Repo --cleanup-tag -y
+        if ($LASTEXITCODE -ne 0) {
+            throw "Failed to delete old release: $oldTag"
+        }
+        Write-Host "Deleted old release $oldTag"
     }
 
     Write-Host "Published release $tag"
