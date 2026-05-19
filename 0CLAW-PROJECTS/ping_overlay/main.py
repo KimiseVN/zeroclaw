@@ -2572,6 +2572,11 @@ def maybe_check_for_updates(
             except Exception:
                 pass
 
+        # True only when THIS invocation is the one that consumed the startup probe.
+        # Must be a local so subsequent calls (15 s retry, periodic, admin-forced) are
+        # not falsely identified as the startup probe — which would suppress the toast.
+        _used_startup_probe = False
+
         try:
             info = None
             if (
@@ -2580,6 +2585,7 @@ def maybe_check_for_updates(
                 and not bool(getattr(app, "startup_update_probe_consumed", False))
             ):
                 app.startup_update_probe_consumed = True
+                _used_startup_probe = True
                 try:
                     startup_wait = float(update_cfg.get("startup_probe_wait_seconds", 2.0))
                 except (TypeError, ValueError):
@@ -2615,14 +2621,13 @@ def maybe_check_for_updates(
             auto_install = bool(update_cfg.get("auto_install", True))
 
             # ── Non-startup runtime check: use toast, never block ──────────────
-            # "auto_install on startup only" — show Windows-style notification
-            # for background / manual checks so the user isn't interrupted.
-            is_startup_probe = (
-                not interactive
-                and getattr(app, "startup_update_probe_consumed", False)
-                and bool(getattr(app, "startup_update_version", "") == __version__)
-            )
-            use_toast = not is_startup_probe  # show toast unless this IS the startup auto-install
+            # Show a Windows-style notification for background / manual checks
+            # so the user isn't interrupted mid-game.  Auto-install silently
+            # only on the very first startup probe (100 ms after launch).
+            # Use the LOCAL flag — NOT the persistent app attribute — so the
+            # 15 s retry, periodic checks, and admin-forced checks are never
+            # mistaken for the startup probe.
+            use_toast = not _used_startup_probe  # toast for everything except startup auto-install
 
             if use_toast and auto_install and not interactive:
                 # Runtime background detection: toast only, no blocking install
@@ -7538,7 +7543,18 @@ def main():
         # a cold gateway returning stale "latest" metadata right after app
         # launch. The retry performs a fresh check because the startup probe
         # result is consumed by the first auto-check.
-        overlay.schedule(15000, _auto_update_check)
+        overlay.schedule(15_000, _auto_update_check)
+
+        # Periodic runtime check: toast notification if a new version drops
+        # while the app is running (e.g. user plays for hours without restart).
+        # 30-minute interval — unobtrusive, low network cost.
+        _PERIODIC_UPDATE_MS = 30 * 60 * 1_000  # 30 minutes
+
+        def _periodic_update_check() -> None:
+            _auto_update_check()
+            overlay.schedule(_PERIODIC_UPDATE_MS, _periodic_update_check)
+
+        overlay.schedule(_PERIODIC_UPDATE_MS, _periodic_update_check)
 
     window_follow_loop(overlay, app)
     display_loop(overlay, app, options)
