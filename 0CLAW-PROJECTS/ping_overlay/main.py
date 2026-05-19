@@ -2435,8 +2435,13 @@ def start_startup_update_check(app: AppState) -> None:
 def _run_download_and_install(info, app: "AppState", overlay: "Overlay", tray) -> None:
     """Download + install update and exit the app. Called from toast click or startup path."""
     try:
-        if getattr(info, "incremental", False) and _is_bridge_build(app.cfg):
+        if getattr(info, "incremental", False) and _is_bridge_build(app.cfg) and not is_onedir_install():
             # ── Bridge path: download installer Setup exe and migrate ───────
+            # Only for portable/onefile builds that need to migrate to onedir.
+            # Onedir installs already have the right layout and must use the
+            # incremental path regardless of what bridge_to_installer.enabled says
+            # (a leftover bridge config from an earlier edition must not force a
+            # full installer download that would return 404 from the update repo).
             bridge_cfg   = app.cfg.get("bridge_to_installer") or {}
             url_template = str(bridge_cfg.get("installer_url_template") or "")
             if not url_template:
