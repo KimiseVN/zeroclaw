@@ -6662,9 +6662,18 @@ def display_loop(overlay: Overlay, app: AppState, options: OverlayOptions):
                 if _licensed and (options.show_fps or options.show_frametime):
                     fps_text = None
                     frametime_text = None
+                    fps_color: str | None = None
                     if options.show_fps:
                         fps_val = app.fps_mon.fps() if app.fps_mon else None
                         fps_text = f"{fps_val:.0f}" if fps_val is not None else "n/a"
+                        # Color-code by FPS tier: red < 40, orange < 60, green ≥ 60
+                        if fps_val is not None:
+                            if fps_val < 40:
+                                fps_color = "#FF4444"   # red   — very low
+                            elif fps_val < 60:
+                                fps_color = "#FF9900"   # orange — below 60
+                            else:
+                                fps_color = "#44DD44"   # green  — 60+ fps
                     if options.show_frametime:
                         ftime = (app.fps_mon.frame_time_ms()
                                  if app.fps_mon else None)
@@ -6674,6 +6683,7 @@ def display_loop(overlay: Overlay, app: AppState, options: OverlayOptions):
                             _overlay_metric(
                                 _combine_metric_group("FPS", fps_text, frametime_text),
                                 "FPS: 999 - 99.9ms" if options.show_frametime else "FPS: 999",
+                                color=fps_color,
                             )
                         )
                     else:
