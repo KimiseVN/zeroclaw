@@ -2476,12 +2476,20 @@ def _run_download_and_install(info, app: "AppState", overlay: "Overlay", tray) -
                             pass
                     installer_path = None
             if _last_exc is not None:
-                raise _last_exc
+                raise RuntimeError(
+                    f"Failed to download installer for v{info.version}: {_last_exc}"
+                ) from _last_exc
             assert installer_path is not None
             print(f"[bridge] installer downloaded ({installer_path.stat().st_size:,} bytes)")
             install_via_installer_setup(installer_path)
-        elif getattr(info, "incremental", False) and info.manifest:
+        elif getattr(info, "incremental", False):
             # ── Incremental path (installer / onedir edition) ──────────────
+            if not info.manifest:
+                # Defensive guard: incremental flag set but manifest is missing.
+                # Never fall through to the full-EXE path for onedir builds.
+                raise RuntimeError(
+                    f"Incremental update v{info.version}: manifest is missing or empty"
+                )
             print(f"[update] incremental update v{info.version} — fetching changed files")
             install_dir = Path(sys.executable).parent
             stage_dir   = download_incremental_from_repo(info.manifest, install_dir)

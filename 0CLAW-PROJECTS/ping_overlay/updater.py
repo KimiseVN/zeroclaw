@@ -335,12 +335,14 @@ def download_update(info: UpdateInfo, cfg: dict | None = None) -> Path:
                     break
                 out.write(chunk)
                 hasher.update(chunk)
-    except Exception:
+    except Exception as exc:
         try:
             temp_path.unlink(missing_ok=True)
         except Exception:
             pass
-        raise
+        raise RuntimeError(
+            f"Failed to download update from {info.asset_url}: {exc}"
+        ) from exc
 
     _verify_downloaded_update(info, temp_path, hasher)
     return temp_path
