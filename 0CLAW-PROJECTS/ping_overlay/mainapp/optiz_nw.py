@@ -443,11 +443,14 @@ class OptizNWApp:
 
     # ── UI construction ────────────────────────────────────────────────────────
     def _build_ui(self) -> None:
+        # Pack order matters: top first, then bottom widgets (footer → status bar),
+        # then side-fill widgets (button panel, log).  Reversing this order causes
+        # Tkinter's pack geometry manager to raise "window isn't packed" errors.
         self._build_title_bar()
-        self._build_button_panel()
-        self._build_log_area()
-        self._build_status_bar()
-        self._build_footer()
+        self._build_footer()       # side="bottom" — outermost bottom strip
+        self._build_status_bar()   # side="bottom" — sits just above footer
+        self._build_button_panel() # side="left"
+        self._build_log_area()     # side="left", fill="both", expand=True
 
     def _build_title_bar(self) -> None:
         bar = tk.Frame(self.root, bg=BG3, height=56)
@@ -585,7 +588,7 @@ class OptizNWApp:
             bg=BG3, fg=FG_DIM, font=FONT_SMALL,
             relief="flat", bd=0, padx=10,
         )
-        self._statusbar.pack(side="bottom", fill="x", before=self.root.winfo_children()[-1] if self.root.winfo_children() else None)
+        self._statusbar.pack(side="bottom", fill="x")
 
     def _build_footer(self) -> None:
         footer = tk.Frame(self.root, bg=BG2, height=26)

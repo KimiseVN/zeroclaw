@@ -1,3 +1,3 @@
 """Build/version metadata for PingOverlay."""
 
-__version__ = "1.0.87"
+__version__ = "1.0.88"
