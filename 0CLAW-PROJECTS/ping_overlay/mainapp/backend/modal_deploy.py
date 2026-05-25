@@ -32,7 +32,8 @@ secrets = [modal.Secret.from_name("wwm-api")]
 app = modal.App("wwm-api")
 
 
-@app.function(image=image, secrets=secrets, allow_concurrent_inputs=100)
+@app.function(image=image, secrets=secrets)
+@modal.concurrent(max_inputs=100)
 @modal.asgi_app()
 def fastapi_app():
     from api import app as fastapi_app

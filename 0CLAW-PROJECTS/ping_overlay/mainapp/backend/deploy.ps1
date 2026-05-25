@@ -12,7 +12,7 @@ $adminToken   = "d63f83ca969fbdbd52092f5082f7fe80bf5b05a2aaf3abf8"
 $clientToken  = "a7ea9e8e1c1c4837e5f611e69c63f23c"
 
 # Will be updated after first deploy — check Modal dashboard
-$modalUser    = "thuytk"   # <-- Modal username (update if different)
+$modalUser    = "kimisevn"  # Modal username
 $apiBaseUrl   = "https://${modalUser}--wwm-api-fastapi-app.modal.run"
 
 # OAuth — fill in from Google Cloud Console / Discord Developer Portal

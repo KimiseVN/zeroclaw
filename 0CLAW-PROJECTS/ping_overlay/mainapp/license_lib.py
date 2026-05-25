@@ -44,7 +44,7 @@ LICENSE_FILE_NAME = "license.json"
 # --------------------------------------------------------- API backend ----
 # New backend (Neon-powered) — replaces Supabase REST + Auth + Edge Functions.
 # _SUPABASE_URL / _SUPABASE_ANON kept for import compatibility with account_sync.py.
-_API_BASE_URL     = "https://thuytk--wwm-api-fastapi-app.modal.run"
+_API_BASE_URL     = "https://kimisevn--wwm-api-fastapi-app.modal.run"
 _SUPABASE_URL     = _API_BASE_URL   # alias so account_sync.py imports work
 _SUPABASE_ANON    = ""              # no longer used; JWT Bearer replaces apikey
 

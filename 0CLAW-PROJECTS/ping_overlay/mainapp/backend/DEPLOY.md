@@ -14,7 +14,7 @@ python -m modal secret create wwm-api `
   JWT_SECRET="823bd06ab2f396aeb4ca8312c522c306c4f289283ee31205b085dd93b8a74556" `
   ADMIN_TOKEN="d63f83ca969fbdbd52092f5082f7fe80bf5b05a2aaf3abf8" `
   CLIENT_TOKEN="a7ea9e8e1c1c4837e5f611e69c63f23c" `
-  API_BASE_URL="https://thuytk--wwm-api-fastapi-app.modal.run" `
+  API_BASE_URL="https://kimisevn--wwm-api-fastapi-app.modal.run" `
   GOOGLE_CLIENT_ID="<from Google Cloud Console>" `
   GOOGLE_CLIENT_SECRET="<from Google Cloud Console>" `
   DISCORD_CLIENT_ID="<from Discord Developer Portal>" `
@@ -41,34 +41,34 @@ After deploy, the URL will be shown. Update:
 1. Go to https://console.cloud.google.com/
 2. APIs & Services → Credentials → Create OAuth 2.0 Client
 3. Application type: Web application
-4. Authorized redirect URIs: `https://thuytk--wwm-api-fastapi-app.modal.run/auth/v1/callback/google`
+4. Authorized redirect URIs: `https://kimisevn--wwm-api-fastapi-app.modal.run/auth/v1/callback/google`
 5. Copy Client ID and Client Secret → add to Modal secrets
 
 ### Discord OAuth
 1. Go to https://discord.com/developers/applications
 2. Create application → OAuth2 → General
-3. Add redirect: `https://thuytk--wwm-api-fastapi-app.modal.run/auth/v1/callback/discord`
+3. Add redirect: `https://kimisevn--wwm-api-fastapi-app.modal.run/auth/v1/callback/discord`
 4. Copy Client ID and Secret → add to Modal secrets
 
 ## 5. Update heartbeat endpoint in app config
 
 In the app's Settings (License Admin section), update `endpoint_url` to:
 ```
-https://thuytk--wwm-api-fastapi-app.modal.run/api/heartbeat
+https://kimisevn--wwm-api-fastapi-app.modal.run/api/heartbeat
 ```
 
 ## 6. Test
 
 ```powershell
 # Health check
-Invoke-WebRequest "https://thuytk--wwm-api-fastapi-app.modal.run/health"
+Invoke-WebRequest "https://kimisevn--wwm-api-fastapi-app.modal.run/health"
 
 # Trial settings
-Invoke-WebRequest "https://thuytk--wwm-api-fastapi-app.modal.run/rest/v1/site_settings?key=eq.trial&select=value"
+Invoke-WebRequest "https://kimisevn--wwm-api-fastapi-app.modal.run/rest/v1/site_settings?key=eq.trial&select=value"
 
 # Heartbeat test
 $b = @{action="test_heartbeat"; client_token="a7ea9e8e1c1c4837e5f611e69c63f23c"} | ConvertTo-Json
-Invoke-WebRequest "https://thuytk--wwm-api-fastapi-app.modal.run/api/heartbeat" -Method POST -Body $b -ContentType "application/json"
+Invoke-WebRequest "https://kimisevn--wwm-api-fastapi-app.modal.run/api/heartbeat" -Method POST -Body $b -ContentType "application/json"
 ```
 
 ## Secrets reference
@@ -79,4 +79,4 @@ Invoke-WebRequest "https://thuytk--wwm-api-fastapi-app.modal.run/api/heartbeat" 
 | JWT_SECRET | 823bd06ab2f396aeb... |
 | ADMIN_TOKEN | d63f83ca969fbdbd... |
 | CLIENT_TOKEN | a7ea9e8e1c1c4837... |
-| API_BASE_URL | https://thuytk--wwm-api-fastapi-app.modal.run |
+| API_BASE_URL | https://kimisevn--wwm-api-fastapi-app.modal.run |
