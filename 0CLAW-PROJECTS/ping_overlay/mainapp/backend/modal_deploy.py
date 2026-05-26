@@ -1,10 +1,14 @@
 """
 Modal deployment for WWM Overlay API.
 Deploy: python -m modal deploy backend/modal_deploy.py
+(run from mainapp/ directory)
 """
 import modal
+from pathlib import Path
 
 # ── Image with all dependencies ────────────────────────────────────────────────
+# add_local_file copies api.py into /root/api.py inside the container image
+# so `from api import app` resolves at runtime.
 image = (
     modal.Image.debian_slim(python_version="3.12")
     .pip_install(
@@ -13,6 +17,11 @@ image = (
         "PyJWT>=2.8",
         "bcrypt>=4.1",
         "psycopg2-binary>=2.9",
+        "python-multipart>=0.0.9",
+    )
+    .add_local_file(
+        local_path=str(Path(__file__).parent / "api.py"),
+        remote_path="/root/api.py",
     )
 )
 
@@ -22,7 +31,7 @@ image = (
 #   JWT_SECRET="..."  \
 #   ADMIN_TOKEN="..."  \
 #   CLIENT_TOKEN="..." \
-#   API_BASE_URL="https://thuytk--wwm-api-fastapi-app.modal.run" \
+#   API_BASE_URL="https://kimisevn--wwm-api-fastapi-app.modal.run" \
 #   GOOGLE_CLIENT_ID="..."  \
 #   GOOGLE_CLIENT_SECRET="..." \
 #   DISCORD_CLIENT_ID="..." \

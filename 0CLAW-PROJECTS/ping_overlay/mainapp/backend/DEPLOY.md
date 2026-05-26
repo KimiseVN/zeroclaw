@@ -18,8 +18,13 @@ python -m modal secret create wwm-api `
   GOOGLE_CLIENT_ID="<from Google Cloud Console>" `
   GOOGLE_CLIENT_SECRET="<from Google Cloud Console>" `
   DISCORD_CLIENT_ID="<from Discord Developer Portal>" `
-  DISCORD_CLIENT_SECRET="<from Discord Developer Portal>"
+  DISCORD_CLIENT_SECRET="<from Discord Developer Portal>" `
+  FTP_HOST="153.92.8.124" `
+  FTP_USER="u888361453.wwmoverlay.com" `
+  FTP_PASS="<Hostinger FTP password>"
 ```
+
+> Demo images upload lên `public_html/uploads/demo-images/` qua FTP, accessible tại `https://wwmoverlay.com/uploads/demo-images/`.
 
 Note: API_BASE_URL format = `https://<modal-username>--wwm-api-fastapi-app.modal.run`
 (The Modal username for thuytk.cod@gmail.com — check after first deploy)

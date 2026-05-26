@@ -77,8 +77,11 @@ datas += [
 
 # ── GUI buttons ───────────────────────────────────────────────────────────────
 datas += [
-    ('gui-btn\\btn-on.png',  'assets\\buttons'),
-    ('gui-btn\\btn-off.png', 'assets\\buttons'),
+    ('gui-btn\\btn-on.png',           'assets\\buttons'),
+    ('gui-btn\\btn-off.png',          'assets\\buttons'),
+    ('gui-btn\\start-btn.png',        'assets\\buttons'),
+    ('gui-btn\\start_hover-btn.png',  'assets\\buttons'),
+    ('gui-btn\\stop-btn.png',         'assets\\buttons'),
 ]
 
 # ── Cursors ───────────────────────────────────────────────────────────────────

@@ -21,6 +21,11 @@ $googleSecret = $env:GOOGLE_CLIENT_SECRET ?? ""
 $discordId    = $env:DISCORD_CLIENT_ID    ?? ""
 $discordSec   = $env:DISCORD_CLIENT_SECRET ?? ""
 
+# Hostinger FTP — used for demo image upload (lands in public_html/uploads/demo-images/)
+$ftpHost = "153.92.8.124"
+$ftpUser = "u888361453.wwmoverlay.com"
+$ftpPass = $env:FTP_PASS ?? 'Thuylinh@"()8601!'
+
 Write-Host "Creating Modal secret 'wwm-api'..."
 python -m modal secret create wwm-api `
     "NEON_DATABASE_URL=$neonUrl" `
@@ -31,7 +36,10 @@ python -m modal secret create wwm-api `
     "GOOGLE_CLIENT_ID=$googleId" `
     "GOOGLE_CLIENT_SECRET=$googleSecret" `
     "DISCORD_CLIENT_ID=$discordId" `
-    "DISCORD_CLIENT_SECRET=$discordSec"
+    "DISCORD_CLIENT_SECRET=$discordSec" `
+    "FTP_HOST=$ftpHost" `
+    "FTP_USER=$ftpUser" `
+    "FTP_PASS=$ftpPass"
 
 Write-Host ""
 Write-Host "Deploying to Modal..."

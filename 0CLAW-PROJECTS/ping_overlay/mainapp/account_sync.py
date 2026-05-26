@@ -19,8 +19,7 @@ import time
 from pathlib import Path
 
 from license_lib import (
-    _API_BASE_URL,
-    _SUPABASE_URL,   # alias for _API_BASE_URL (backward compat)
+    _SUPABASE_URL,
     _SUPABASE_ANON,  # empty string — JWT Bearer used instead
     LICENSE_SECRET,
     appdata_dir,
@@ -77,9 +76,9 @@ def _decrypt(blob_b64: str) -> bytes | None:
 
 def _post(endpoint: str, body: dict, *, token: str | None = None, timeout: float = 10.0) -> dict:
     from urllib import request as _req, error as _err
-    url  = f"{_API_BASE_URL}{endpoint}"
+    url  = f"{_SUPABASE_URL}{endpoint}"
     data = json.dumps(body).encode("utf-8")
-    hdrs = {"Content-Type": "application/json", "Accept": "application/json"}
+    hdrs = {"Content-Type": "application/json", "Accept": "application/json", "apikey": _SUPABASE_ANON}
     if token:
         hdrs["Authorization"] = f"Bearer {token}"
     req = _req.Request(url, data=data, headers=hdrs, method="POST")
@@ -97,10 +96,11 @@ def _post(endpoint: str, body: dict, *, token: str | None = None, timeout: float
 
 def _get(endpoint: str, token: str, *, timeout: float = 10.0):
     from urllib import request as _req, error as _err
-    url  = f"{_API_BASE_URL}{endpoint}"
+    url  = f"{_SUPABASE_URL}{endpoint}"
     hdrs = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/json",
+        "apikey": _SUPABASE_ANON,
     }
     req  = _req.Request(url, headers=hdrs)
     try:
@@ -227,13 +227,54 @@ def logout(access_token: str) -> None:
 # ── Profile sync ──────────────────────────────────────────────────────────────
 
 def fetch_user_license_key(token: str, *, timeout: float = 10.0) -> str | None:
-    """Call get_user_license_key() RPC on Supabase.
-    Returns the license key string for the authenticated user, or None.
+    """Return the authenticated user's active license key from Supabase.
+
+    Primary path: direct REST GET on the licenses table (user sees own rows
+    via RLS — no RPC required).
+    Fallback: get_user_license_key() scalar RPC (handles edge cases where the
+    table query returns an unexpected shape).
     """
+    # ── Primary: direct table query ────────────────────────────────────────────
+    rows = _get(
+        "/rest/v1/licenses"
+        "?status=eq.active"
+        "&select=license_key"
+        "&order=issued_at.desc"
+        "&limit=1",
+        token,
+        timeout=timeout,
+    )
+    if isinstance(rows, list) and rows:
+        key = str(rows[0].get("license_key") or "").strip()
+        if key:
+            print("[account] license key fetched from licenses table")
+            return key
+        print("[account] licenses table row has empty license_key")
+    else:
+        if isinstance(rows, dict):
+            print(f"[account] licenses table query error: {rows.get('message') or rows.get('error') or rows}")
+        elif not rows:
+            print("[account] licenses table: no active license row found (RLS may be blocking, or no active license)")
+
+    # ── Fallback: scalar RPC ────────────────────────────────────────────────────
+    print("[account] trying get_user_license_key RPC fallback...")
     result = _post("/rest/v1/rpc/get_user_license_key", {}, token=token, timeout=timeout)
-    # PostgREST scalar RPC returns the value directly (str or None on null)
     if isinstance(result, str) and result.strip():
+        print("[account] license key fetched via RPC")
         return result.strip()
+    # Handle PostgREST wrapping scalar in a list
+    if isinstance(result, list) and result:
+        item = result[0]
+        if isinstance(item, str) and item.strip():
+            return item.strip()
+        if isinstance(item, dict):
+            key = str(item.get("license_key") or "").strip()
+            if key:
+                return key
+    if isinstance(result, dict):
+        print(f"[account] RPC error: {result.get('message') or result.get('error') or result}")
+    elif not result:
+        print("[account] RPC returned empty result — no active license for this user")
     return None
 
 
@@ -298,7 +339,7 @@ def claim_pending_referral(hwid: str, public_ip: str, *, timeout: float = 8.0) -
     ip = (public_ip or "").strip()
     if not hwid_norm or not ip:
         return {"ok": False, "reason": "missing_hwid_or_ip"}
-    url = f"{_API_BASE_URL}/functions/v1/claim-referral"
+    url = f"{_SUPABASE_URL}/functions/v1/claim-referral"
     payload = json.dumps({"hwid": hwid_norm, "public_ip": ip}).encode("utf-8")
     hdrs = {
         "Content-Type": "application/json",
@@ -412,7 +453,7 @@ def login_oauth(provider: str) -> tuple[bool, str, dict]:
     _th.Thread(target=_serve, daemon=True, name=f"OAuthSrv-{provider}").start()
 
     oauth_url = (
-        f"{_API_BASE_URL}/auth/v1/authorize"
+        f"{_SUPABASE_URL}/auth/v1/authorize"
         f"?provider={provider}"
         f"&redirect_to={urllib.parse.quote(redirect_uri, safe='')}"
     )

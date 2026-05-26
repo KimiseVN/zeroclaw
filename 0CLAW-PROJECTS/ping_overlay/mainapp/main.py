@@ -977,10 +977,11 @@ class _UpdateToast:
     _BAR_CLR = "#00C8FF"
     _TIMEOUT = 10_000   # ms
 
-    def __init__(self, root: tk.Tk, version: str, on_click) -> None:
+    def __init__(self, root: tk.Tk, version: str, on_click, app=None) -> None:
         self._root     = root
         self._version  = version
         self._on_click = on_click
+        self._app      = app
         self._win: "tk.Toplevel | None" = None
         self._after_id: "str | None"    = None
 
@@ -1010,14 +1011,14 @@ class _UpdateToast:
         tk.Label(top_row, text="🔄", bg=self._BG, font=("Segoe UI Emoji", 14)).pack(side="left")
         tk.Label(
             top_row,
-            text=f"  Update available — v{self._version}",
+            text=f"  {tr(self._app, 'update_available_title')} — v{self._version}",
             bg=self._BG, fg=self._FG_MAIN,
             font=("Segoe UI", 10, "bold"),
         ).pack(side="left")
 
         tk.Label(
             inner,
-            text="Click to update now, or it will remind you later.",
+            text=tr(self._app, "update_toast_sub"),
             bg=self._BG, fg=self._FG_SUB,
             font=("Segoe UI", 9),
             anchor="w",
@@ -1085,6 +1086,135 @@ class _UpdateToast:
             pass
 
 
+class _UpdateProgressBanner:
+    """Non-dismissible bottom-right banner shown while a startup auto-install is downloading.
+
+    Unlike _UpdateToast there is no click action and no countdown timer — the
+    banner stays visible until the app exits or the caller calls dismiss().
+    An indeterminate sliding progress bar and animated dots signal ongoing activity.
+    """
+
+    _BG      = "#1A1A2E"
+    _BORDER  = "#00C8FF"
+    _FG_MAIN = "#FFFFFF"
+    _FG_SUB  = "#99AAC4"
+    _BAR_CLR = "#00C8FF"
+
+    def __init__(self, root: tk.Tk, version: str, app=None) -> None:
+        self._root      = root
+        self._version   = version
+        self._app       = app
+        self._win: "tk.Toplevel | None" = None
+        self._after_id: "str | None"    = None
+        self._dot_step  = 0
+        self._bar_pos   = 0.0
+        self._bar_dir   = 1
+
+    # ── public ────────────────────────────────────────────────────────────────
+    def show(self) -> None:
+        if self._win is not None:
+            return
+        win = tk.Toplevel(self._root)
+        win.overrideredirect(True)
+        win.attributes("-topmost", True)
+        win.configure(bg=self._BG)
+
+        W, H = 360, 95
+        sw = win.winfo_screenwidth()
+        sh = win.winfo_screenheight()
+        win.geometry(f"{W}x{H}+{sw - W - 14}+{sh - H - 56}")
+
+        # Border frame
+        outer = tk.Frame(win, bg=self._BORDER, padx=2, pady=2)
+        outer.pack(fill="both", expand=True)
+        inner = tk.Frame(outer, bg=self._BG, padx=14, pady=10)
+        inner.pack(fill="both", expand=True)
+
+        # Icon + title row
+        top_row = tk.Frame(inner, bg=self._BG)
+        top_row.pack(fill="x")
+        tk.Label(top_row, text="⬆", bg=self._BG, font=("Segoe UI Emoji", 13)).pack(side="left")
+        tk.Label(
+            top_row,
+            text=f"  {tr(self._app, 'update_available_title')} — v{self._version}",
+            bg=self._BG, fg=self._FG_MAIN,
+            font=("Segoe UI", 10, "bold"),
+        ).pack(side="left")
+
+        # Animated status label
+        self._status_lbl = tk.Label(
+            inner,
+            text=self._dot_text(),
+            bg=self._BG, fg=self._FG_SUB,
+            font=("Segoe UI", 9),
+            anchor="w",
+        )
+        self._status_lbl.pack(fill="x", pady=(3, 6))
+
+        # Indeterminate sliding progress bar
+        bar_bg = tk.Frame(inner, bg="#2A2A40", height=4)
+        bar_bg.pack(fill="x", side="bottom")
+        bar_bg.pack_propagate(False)
+        self._bar_fill = tk.Frame(bar_bg, bg=self._BAR_CLR, height=4)
+        self._bar_fill.place(x=0, y=0, relwidth=0.35, height=4)
+        self._bar_bg   = bar_bg
+
+        self._win = win
+        self._tick()
+
+    def dismiss(self) -> None:
+        if self._after_id is not None:
+            try:
+                self._root.after_cancel(self._after_id)
+            except Exception:
+                pass
+            self._after_id = None
+        if self._win is not None:
+            try:
+                self._win.destroy()
+            except Exception:
+                pass
+            self._win = None
+
+    # ── private ───────────────────────────────────────────────────────────────
+    def _dot_text(self) -> str:
+        dots = "." * ((self._dot_step % 3) + 1)
+        if lang_code(self._app) == "vi":
+            return f"Đang tải bản cập nhật{dots}"
+        return f"Downloading update{dots}"
+
+    def _tick(self) -> None:
+        if self._win is None:
+            return
+        self._dot_step += 1
+
+        # Animate dots
+        try:
+            self._status_lbl.configure(text=self._dot_text())
+        except Exception:
+            pass
+
+        # Animate sliding bar
+        try:
+            self._bar_bg.update_idletasks()
+            w = self._bar_bg.winfo_width()
+            bar_w = max(1, int(w * 0.35))
+            max_pos = max(0, w - bar_w)
+            step = max(1, max_pos // 20)
+            self._bar_pos += self._bar_dir * step
+            if self._bar_pos >= max_pos:
+                self._bar_pos = float(max_pos)
+                self._bar_dir = -1
+            elif self._bar_pos <= 0:
+                self._bar_pos = 0.0
+                self._bar_dir = 1
+            self._bar_fill.place(x=int(self._bar_pos), y=0, width=bar_w, height=4)
+        except Exception:
+            pass
+
+        self._after_id = self._win.after(250, self._tick)  # type: ignore[attr-defined]
+
+
 class _ImageToggle(ttk.Checkbutton):
     """System-default Checkbutton with the same public interface as the old image-based toggle.
 
@@ -1139,6 +1269,8 @@ I18N = {
         "update_available_body": "A new version {version} is available.\n\nYou are running {current}.\nThe app will download and restart to update.\n\nUpdate now?",
         "update_installing": "Updating to {version}. The app will restart automatically.",
         "update_error": "Could not update:\n{error}",
+        "update_toast_sub": "Click to install now, or it will remind you later.",
+        "update_startup_body": "✨ Version {version} is now available!\n\nDownloading update, please wait a moment...\nThe app will restart automatically after updating.",
         "start_wait_game_title": "Where Winds Meet is not running",
         "start_wait_game_body": "Please launch Where Winds Meet first.\n\nAfter clicking OK, WWM Overlay will keep waiting and attach automatically when wwm.exe starts.",
         "pick_process_title": "Choose game process",
@@ -1424,6 +1556,8 @@ I18N = {
         "update_available_body": "Đã có bản mới {version}.\n\nBạn đang dùng {current}.\nỨng dụng sẽ tải và tự khởi động lại để cập nhật.\n\nCập nhật ngay?",
         "update_installing": "Đang cập nhật lên {version}. Ứng dụng sẽ tự khởi động lại.",
         "update_error": "Không thể cập nhật:\n{error}",
+        "update_toast_sub": "Bấm để cài ngay, hoặc sẽ nhắc lại sau.",
+        "update_startup_body": "✨ Phiên bản {version} đã sẵn sàng!\n\nĐang tải bản cập nhật, vui lòng chờ trong giây lát...\nỨng dụng sẽ tự khởi động lại sau khi cập nhật.",
         "start_wait_game_title": "Chưa thấy Where Winds Meet",
         "start_wait_game_body": "Vui lòng khởi chạy Where Winds Meet trước.\n\nSau khi bấm OK, WWM Overlay sẽ tiếp tục chờ và tự bám vào wwm.exe khi game khởi chạy.",
         "pick_process_title": "Chọn process game",
@@ -2535,6 +2669,14 @@ def _run_download_and_install(info, app: "AppState", overlay: "Overlay", tray) -
             install_downloaded_update(download_path, info.asset_name)
 
         def finish():
+            # Dismiss startup progress banner (if shown) before the info dialog
+            _banner = getattr(app, "_startup_update_banner", None)
+            if _banner is not None:
+                try:
+                    _banner.dismiss()
+                except Exception:
+                    pass
+                app._startup_update_banner = None
             show_topmost_info(
                 tr(app, "update_title"),
                 tr(app, "update_installing", version=info.version),
@@ -2672,7 +2814,7 @@ def maybe_check_for_updates(
                     ).start()
 
                 def _show_toast():
-                    toast = _UpdateToast(overlay.root, info.version, _do_update_from_toast)
+                    toast = _UpdateToast(overlay.root, info.version, _do_update_from_toast, app=app)
                     toast.show()
 
                 overlay.root.after(0, _show_toast)
@@ -2688,7 +2830,7 @@ def maybe_check_for_updates(
                     ).start()
 
                 def _show_interactive_toast():
-                    toast = _UpdateToast(overlay.root, info.version, _do_update_interactive)
+                    toast = _UpdateToast(overlay.root, info.version, _do_update_interactive, app=app)
                     toast.show()
 
                 overlay.root.after(0, _show_interactive_toast)
@@ -2714,7 +2856,18 @@ def maybe_check_for_updates(
                     _release()
                     return
 
-            # Startup auto-install: download and replace immediately
+            # Startup auto-install: show progress banner, then download and replace
+            _banner_ready = threading.Event()
+
+            def _show_startup_banner():
+                banner = _UpdateProgressBanner(overlay.root, info.version, app)
+                banner.show()
+                app._startup_update_banner = banner
+                _banner_ready.set()
+
+            overlay.root.after(0, _show_startup_banner)
+            _banner_ready.wait(timeout=1.5)  # wait for Tk to render the banner
+
             _run_download_and_install(info, app, overlay, tray)
         except Exception as e:
             err = str(e)
@@ -3674,15 +3827,29 @@ class ControlPanel:
                     import license_check as _lc
                     import account_sync as _acc2
                     token = sess.get("access_token", "")
+                    if not token:
+                        print("[account] license sync: no access token in session")
                     key = _acc2.fetch_user_license_key(token) if token else None
                     if key:
                         status = _lc.save_license(key)
                         ok = status.is_licensed
+                        err_code = status.error or ""
+                        if not ok:
+                            print(f"[account] license sync: validation failed"
+                                  f" — error={err_code!r}"
+                                  f", machine_hwid={status.hwid!r}"
+                                  f", key_prefix={key[:30]!r}")
+                        else:
+                            print(f"[account] license sync: OK — {status.expires_at}")
                         def _upd() -> None:
                             mv2 = getattr(dialog, "_lic_msg_var", None)
                             ml2 = getattr(dialog, "_lic_msg_label", None)
                             if mv2:
-                                mv2.set(tr(self.app, "uc_license_ok") if ok else tr(self.app, "uc_license_err"))
+                                if ok:
+                                    mv2.set(tr(self.app, "uc_license_ok"))
+                                else:
+                                    base_msg = tr(self.app, "uc_license_err")
+                                    mv2.set(f"{base_msg} ({err_code})" if err_code else base_msg)
                             if ml2:
                                 ml2.configure(foreground="#1f9b4a" if ok else "#C0392B")
                             try:
@@ -3695,6 +3862,7 @@ class ControlPanel:
                         except Exception:
                             pass
                     else:
+                        print("[account] license sync: no active license key found in account")
                         def _upd_none() -> None:
                             mv2 = getattr(dialog, "_lic_msg_var", None)
                             ml2 = getattr(dialog, "_lic_msg_label", None)
@@ -3706,8 +3874,10 @@ class ControlPanel:
                             dialog.after(0, _upd_none)
                         except Exception:
                             pass
-                except Exception:
-                    pass
+                except Exception as _exc:
+                    import traceback
+                    print(f"[account] license sync error: {_exc}")
+                    traceback.print_exc()
 
             _threading.Thread(target=_bg, daemon=True, name="UC-SyncLic").start()
 

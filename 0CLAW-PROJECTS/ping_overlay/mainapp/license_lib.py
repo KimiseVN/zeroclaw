@@ -42,45 +42,62 @@ LICENSE_FORMAT = "PO1"
 LICENSE_FILE_NAME = "license.json"
 
 # --------------------------------------------------------- API backend ----
-# New backend (Neon-powered) — replaces Supabase REST + Auth + Edge Functions.
-# _SUPABASE_URL / _SUPABASE_ANON kept for import compatibility with account_sync.py.
-_API_BASE_URL     = "https://kimisevn--wwm-api-fastapi-app.modal.run"
-_SUPABASE_URL     = _API_BASE_URL   # alias so account_sync.py imports work
-_SUPABASE_ANON    = ""              # no longer used; JWT Bearer replaces apikey
+# Modal backend — handles auth, heartbeat, account sync for the desktop app.
+_API_BASE_URL  = "https://kimisevn--wwm-api-fastapi-app.modal.run"
+
+# Supabase — new project (lhweoqutcdbknfbbttyo). Used for direct public reads
+# (site_settings trial days). The anon key is intentionally public.
+_SUPABASE_URL  = "https://lhweoqutcdbknfbbttyo.supabase.co"
+_SUPABASE_ANON = (
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+    ".eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxod2VvcXV0Y2Ria25mYmJ0dHlvIiwic"
+    "m9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NzYxNDgsImV4cCI6MjA5NTI1MjE0OH0"
+    ".N0ea3MSd-JCHBQGxn94VaJfmUhELmgbMAqsLtEJKqBE"
+)
 
 _trial_days_cache: int | None = None
 
 
 def fetch_trial_days(*, timeout: float = 4.0) -> int:
-    """Read the admin-configured trial duration from the API backend.
+    """Read the admin-configured trial duration from Supabase site_settings.
 
+    Tries Supabase REST API directly first (public read, no cold-start delay),
+    then falls back to the Modal backend, then defaults to 3 days.
     Cached after the first successful fetch so subsequent calls are free.
-    Returns 3 on any error (network down, server unreachable, …).
     """
     global _trial_days_cache
     if _trial_days_cache is not None:
         return _trial_days_cache
 
-    try:
-        import json as _json
-        from urllib import request as _req
+    import json as _json
+    from urllib import request as _req
 
-        url = (
-            f"{_API_BASE_URL}/rest/v1/site_settings"
-            "?key=eq.trial&select=value"
+    def _try_url(url: str, headers: dict) -> int | None:
+        try:
+            req = _req.Request(url, headers={"Accept": "application/json", **headers})
+            with _req.urlopen(req, timeout=timeout) as resp:
+                rows = _json.loads(resp.read())
+                if isinstance(rows, list) and rows:
+                    days = (rows[0].get("value") or {}).get("days")
+                    if isinstance(days, (int, float)) and 1 <= float(days) <= 365:
+                        return int(days)
+        except Exception:
+            pass
+        return None
+
+    # 1. Supabase REST API directly (fast, always available)
+    days = _try_url(
+        f"{_SUPABASE_URL}/rest/v1/site_settings?key=eq.trial&select=value",
+        {"apikey": _SUPABASE_ANON, "Authorization": f"Bearer {_SUPABASE_ANON}"},
+    )
+    # 2. Modal backend fallback (in case Supabase is down)
+    if days is None:
+        days = _try_url(
+            f"{_API_BASE_URL}/rest/v1/site_settings?key=eq.trial&select=value",
+            {},
         )
-        req = _req.Request(url, headers={"Accept": "application/json"})
-        with _req.urlopen(req, timeout=timeout) as resp:
-            rows = _json.loads(resp.read())
-            if isinstance(rows, list) and rows:
-                days = (rows[0].get("value") or {}).get("days")
-                if isinstance(days, (int, float)) and 1 <= float(days) <= 365:
-                    _trial_days_cache = int(days)
-                    return _trial_days_cache
-    except Exception:
-        pass
 
-    _trial_days_cache = 3  # fallback — 3 days
+    _trial_days_cache = days if days is not None else 3
     return _trial_days_cache
 
 # (code, days). 0 = lifetime.

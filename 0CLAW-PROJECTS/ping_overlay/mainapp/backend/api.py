@@ -46,13 +46,13 @@ import jwt
 import psycopg2
 import psycopg2.extras
 import psycopg2.pool
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 
 # ── Config ─────────────────────────────────────────────────────────────────────
 
-DB_URL               = os.environ.get("NEON_DATABASE_URL", "")
+DB_URL               = os.environ.get("SUPABASE_DB_URL", os.environ.get("NEON_DATABASE_URL", ""))
 JWT_SECRET           = os.environ.get("JWT_SECRET", "CHANGEME_generate_with_secrets.token_hex(32)")
 ADMIN_TOKEN          = os.environ.get("ADMIN_TOKEN", "")
 CLIENT_TOKEN         = os.environ.get("CLIENT_TOKEN", "")   # heartbeat client auth (optional)
@@ -84,7 +84,7 @@ def _get_pool() -> psycopg2.pool.ThreadedConnectionPool:
     global _pool
     if _pool is None:
         if not DB_URL:
-            raise RuntimeError("NEON_DATABASE_URL not set")
+            raise RuntimeError("SUPABASE_DB_URL not set")
         _pool = psycopg2.pool.ThreadedConnectionPool(1, 10, DB_URL)
     return _pool
 
@@ -354,11 +354,12 @@ async def auth_callback(provider: str, code: str = "", state: str = "", error: s
     access  = _make_access_token(user_id, email)
     refresh = _make_refresh_token(user_id)
 
-    frag = urllib.parse.urlencode({
+    qs = urllib.parse.urlencode({
         "access_token": access, "refresh_token": refresh,
         "expires_in": ACCESS_TOKEN_EXPIRE_S, "token_type": "bearer",
     })
-    return RedirectResponse(f"{redirect_to}#{frag}")
+    sep = "&" if "?" in redirect_to else "?"
+    return RedirectResponse(f"{redirect_to}{sep}{qs}")
 
 
 def _upsert_oauth_user(email: str, name: str, avatar: str) -> str:
@@ -715,9 +716,382 @@ async def admin_set_password(request: Request):
     return {"ok": True}
 
 
+@app.post("/api/admin/upload-image")
+async def admin_upload_image(request: Request, file: UploadFile = File(...)):
+    """Upload a demo image to Hostinger via FTP and return public URL. Admin only."""
+    import ftplib, io as _io
+
+    uid, is_admin = _optional_auth(request)
+    if not is_admin:
+        raise HTTPException(403, "admin required")
+
+    ftp_host = os.environ.get("FTP_HOST", "153.92.8.124")
+    ftp_user = os.environ.get("FTP_USER", "u888361453.wwmoverlay.com")
+    ftp_pass = os.environ.get("FTP_PASS", "")
+    if not ftp_pass:
+        raise HTTPException(503, "FTP_PASS not configured in Modal secrets")
+
+    content = await file.read()
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(400, "file too large (max 10 MB)")
+
+    fname    = (file.filename or "image.jpg").replace("/", "-").replace("\\", "-")
+    ext      = fname.rsplit(".", 1)[-1].lower()[:8] if "." in fname else "jpg"
+    if ext not in {"jpg", "jpeg", "png", "gif", "webp"}:
+        ext = "jpg"
+    filename = f"{int(time.time())}-{secrets.token_hex(4)}.{ext}"
+
+    try:
+        with ftplib.FTP() as ftp:
+            ftp.connect(ftp_host, 21, timeout=30)
+            ftp.login(ftp_user, ftp_pass)
+            ftp.set_pasv(True)
+            # Create upload dirs if needed (FTP CWD = public_html/ after login)
+            for d in ("uploads", "uploads/demo-images"):
+                try:
+                    ftp.mkd(d)
+                except ftplib.error_perm:
+                    pass  # already exists
+            ftp.storbinary(f"STOR uploads/demo-images/{filename}", _io.BytesIO(content))
+    except ftplib.all_errors as e:
+        raise HTTPException(500, f"FTP upload failed: {e}")
+
+    return {"ok": True, "url": f"https://wwmoverlay.com/uploads/demo-images/{filename}"}
+
+
 @app.get("/health")
 async def health():
     return {"ok": True, "ts": _utc_now()}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  AUTH EXTRAS
+# ══════════════════════════════════════════════════════════════════════════════
+
+@app.post("/auth/v1/signup")
+async def auth_signup(request: Request):
+    """Register a new user with email + password."""
+    body     = await request.json()
+    email    = (body.get("email") or "").strip().lower()
+    password = (body.get("password") or "").strip()
+    full_name = body.get("full_name") or None
+
+    if not email or not password:
+        raise HTTPException(400, "email and password required")
+    if len(password) < 6:
+        raise HTTPException(400, "password must be at least 6 characters")
+
+    existing = _one("SELECT id FROM profiles WHERE email = %s", (email,))
+    if existing:
+        raise HTTPException(400, "User already registered")
+
+    user_id = _upsert_oauth_user(email, full_name or "", "")
+    pw_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    _exec(
+        "INSERT INTO user_auth (user_id, password_hash) VALUES (%s::uuid, %s)"
+        " ON CONFLICT (user_id) DO UPDATE SET password_hash = EXCLUDED.password_hash",
+        (user_id, pw_hash),
+    )
+    return {"message": "Account created. You can now sign in."}
+
+
+@app.post("/auth/v1/user/password")
+async def auth_update_password(request: Request):
+    """Update password for the authenticated user."""
+    claims   = _auth_user(request)
+    body     = await request.json()
+    password = (body.get("password") or "").strip()
+    if len(password) < 6:
+        raise HTTPException(400, "password must be at least 6 characters")
+    pw_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    _exec(
+        "INSERT INTO user_auth (user_id, password_hash) VALUES (%s::uuid, %s)"
+        " ON CONFLICT (user_id) DO UPDATE SET password_hash = EXCLUDED.password_hash",
+        (claims["sub"], pw_hash),
+    )
+    return {"message": "Password updated"}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  GENERIC POSTGREST-COMPATIBLE REST LAYER  /rest/v1/{table}
+# ══════════════════════════════════════════════════════════════════════════════
+
+import re as _re
+
+# Row-level rules per table
+_TABLE_RULES: dict[str, dict] = {
+    # public_read: anon users can GET
+    # user_col:    column that links a row to its owner (RLS key)
+    # user_write:  owner can PATCH their own rows
+    # user_insert: authenticated users can POST
+    "site_settings":   dict(public_read=True,  user_col=None,           user_write=False, user_insert=False),
+    "profiles":        dict(public_read=False, user_col="id",           user_write=True,  user_insert=False),
+    "licenses":        dict(public_read=False, user_col="user_id",      user_write=False, user_insert=False),
+    "orders":          dict(public_read=False, user_col="user_id",      user_write=True,  user_insert=True),
+    "notifications":   dict(public_read=False, user_col="user_id",      user_write=True,  user_insert=False),
+    "referral_events": dict(public_read=False, user_col="referrer_id",  user_write=False, user_insert=False),
+    "payment_config":  dict(public_read=True,  user_col=None,           user_write=False, user_insert=False),
+    "faq":             dict(public_read=True,  user_col=None,           user_write=False, user_insert=False),
+    "demo_images":     dict(public_read=True,  user_col=None,           user_write=False, user_insert=False),
+    "blacklist":       dict(public_read=False, user_col=None,           user_write=False, user_insert=False),
+    "clients":         dict(public_read=False, user_col=None,           user_write=False, user_insert=False),
+    "visits":          dict(public_read=False, user_col=None,           user_write=False, user_insert=False),
+}
+
+_IDENT_RE = _re.compile(r'^[a-z_][a-z0-9_]*$')
+
+
+def _safe_ident(name: str) -> str:
+    if not _IDENT_RE.match(name):
+        raise HTTPException(400, f"invalid identifier: {name!r}")
+    return name
+
+
+def _parse_postgrest(params: dict, exclude: set | None = None) -> tuple[list, list]:
+    """Parse PostgREST filter params → (where_clauses, values)."""
+    skip = (exclude or set()) | {"select", "order", "limit", "offset"}
+    clauses, values = [], []
+    for key, raw in params.items():
+        if key in skip:
+            continue
+        _safe_ident(key)
+        if raw.startswith("eq."):
+            clauses.append(f"{key} = %s")
+            values.append(raw[3:])
+        elif raw.startswith("neq."):
+            clauses.append(f"{key} != %s")
+            values.append(raw[4:])
+        elif raw.startswith("in.(") and raw.endswith(")"):
+            vals = [v.strip() for v in raw[4:-1].split(",") if v.strip()]
+            if vals:
+                clauses.append(f"{key} IN ({','.join(['%s']*len(vals))})")
+                values.extend(vals)
+        elif raw == "is.null":
+            clauses.append(f"{key} IS NULL")
+        elif raw in ("is.not.null", "not.is.null"):
+            clauses.append(f"{key} IS NOT NULL")
+        elif raw.startswith("gte."):
+            clauses.append(f"{key} >= %s"); values.append(raw[4:])
+        elif raw.startswith("lte."):
+            clauses.append(f"{key} <= %s"); values.append(raw[4:])
+        elif raw.startswith("gt."):
+            clauses.append(f"{key} > %s"); values.append(raw[3:])
+        elif raw.startswith("lt."):
+            clauses.append(f"{key} < %s"); values.append(raw[3:])
+        elif raw.startswith("ilike."):
+            clauses.append(f"{key} ILIKE %s"); values.append(raw[6:])
+        elif raw.startswith("like."):
+            clauses.append(f"{key} LIKE %s"); values.append(raw[5:])
+    return clauses, values
+
+
+def _optional_auth(request: Request) -> tuple[str | None, bool]:
+    """Return (user_id, is_admin). Both falsy when not authenticated."""
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
+        return None, False
+    try:
+        claims  = _decode_jwt(auth[7:])
+        uid     = claims.get("sub")
+        if uid:
+            row = _one("SELECT is_admin FROM profiles WHERE id = %s::uuid", (uid,))
+            return uid, bool(row and row.get("is_admin"))
+    except Exception:
+        pass
+    return None, False
+
+
+@app.get("/rest/v1/{table}")
+async def rest_get(table: str, request: Request):
+    if table == "site_settings" or table == "profiles":
+        # Handled by specific routes above — but FastAPI matches specific routes first,
+        # so this branch is only hit for other tables.
+        pass
+    if table not in _TABLE_RULES:
+        raise HTTPException(404, "table not found")
+    rules = _TABLE_RULES[table]
+
+    uid, is_admin = _optional_auth(request)
+    if not rules["public_read"] and not uid:
+        raise HTTPException(401, "authentication required")
+
+    params     = dict(request.query_params)
+    select_raw = params.get("select", "*")
+    order_raw  = params.get("order", "")
+    limit_raw  = params.get("limit", "")
+
+    select_sql = "*" if select_raw == "*" else ", ".join(
+        _safe_ident(c.strip()) for c in select_raw.split(",") if c.strip()
+    )
+
+    where, vals = _parse_postgrest(params)
+
+    # RLS: non-admin users see only their own rows
+    if not is_admin and rules["user_col"] and uid:
+        where.append(f'{rules["user_col"]} = %s::uuid')
+        vals.append(uid)
+    elif not is_admin and rules["user_col"] and not uid:
+        return []  # no uid → empty result for user-owned tables
+
+    sql = f"SELECT {select_sql} FROM {table}"
+    if where:
+        sql += " WHERE " + " AND ".join(where)
+    if order_raw:
+        parts = order_raw.split(".")
+        col   = _safe_ident(parts[0])
+        direction = "DESC" if len(parts) > 1 and parts[1].lower() == "desc" else "ASC"
+        sql += f" ORDER BY {col} {direction}"
+    if limit_raw:
+        try:
+            sql += f" LIMIT {int(limit_raw)}"
+        except ValueError:
+            pass
+
+    return _all(sql, vals)
+
+
+@app.post("/rest/v1/{table}")
+async def rest_insert(table: str, request: Request):
+    if table not in _TABLE_RULES:
+        raise HTTPException(404, "table not found")
+    rules = _TABLE_RULES[table]
+
+    uid, is_admin = _optional_auth(request)
+    if not is_admin:
+        if not rules["user_insert"]:
+            raise HTTPException(403, "insert not allowed")
+        if not uid:
+            raise HTTPException(401, "authentication required")
+
+    body = await request.json()
+
+    # RLS: force owner column to current user
+    if not is_admin and uid and rules["user_col"]:
+        body[rules["user_col"]] = uid
+
+    cols         = [_safe_ident(c) for c in body.keys()]
+    placeholders = ", ".join(["%s"] * len(cols))
+    vals         = [body[c] for c in cols]
+
+    # Upsert support: ?prefer=upsert&on_conflict=<col>
+    prefer      = request.query_params.get("prefer", "")
+    on_conflict = request.query_params.get("on_conflict", "")
+
+    if prefer == "upsert" and on_conflict:
+        conflict_col = _safe_ident(on_conflict)
+        update_cols  = [c for c in cols if c != conflict_col]
+        if update_cols:
+            set_clause = ", ".join(f"{c} = EXCLUDED.{c}" for c in update_cols)
+            sql = (
+                f"INSERT INTO {table} ({', '.join(cols)}) VALUES ({placeholders})"
+                f" ON CONFLICT ({conflict_col}) DO UPDATE SET {set_clause} RETURNING *"
+            )
+        else:
+            sql = (
+                f"INSERT INTO {table} ({', '.join(cols)}) VALUES ({placeholders})"
+                f" ON CONFLICT ({conflict_col}) DO NOTHING RETURNING *"
+            )
+        row = _one(sql, vals)
+    else:
+        row = _one(
+            f"INSERT INTO {table} ({', '.join(cols)}) VALUES ({placeholders}) RETURNING *",
+            vals,
+        )
+    return row
+
+
+@app.patch("/rest/v1/{table}")
+async def rest_update(table: str, request: Request):
+    if table not in _TABLE_RULES:
+        raise HTTPException(404, "table not found")
+    rules = _TABLE_RULES[table]
+
+    uid, is_admin = _optional_auth(request)
+    if not is_admin:
+        if not rules["user_write"]:
+            raise HTTPException(403, "write not allowed")
+        if not uid:
+            raise HTTPException(401, "authentication required")
+
+    body   = await request.json()
+    params = dict(request.query_params)
+
+    set_cols   = [_safe_ident(c) for c in body.keys()]
+    set_clause = ", ".join(f"{c} = %s" for c in set_cols)
+    set_vals   = [body[c] for c in set_cols]
+
+    where, where_vals = _parse_postgrest(params)
+    if not is_admin and uid and rules["user_col"]:
+        where.append(f'{rules["user_col"]} = %s::uuid')
+        where_vals.append(uid)
+
+    if not where:
+        raise HTTPException(400, "update requires at least one filter")
+
+    rows = _all(
+        f"UPDATE {table} SET {set_clause} WHERE {' AND '.join(where)} RETURNING *",
+        set_vals + where_vals,
+    )
+    return rows
+
+
+@app.delete("/rest/v1/{table}")
+async def rest_delete_table(table: str, request: Request):
+    if table not in _TABLE_RULES:
+        raise HTTPException(404, "table not found")
+
+    _, is_admin = _optional_auth(request)
+    if not is_admin:
+        raise HTTPException(403, "delete requires admin")
+
+    params = dict(request.query_params)
+    where, vals = _parse_postgrest(params)
+    if not where:
+        raise HTTPException(400, "delete requires at least one filter")
+
+    rows = _all(
+        f"DELETE FROM {table} WHERE {' AND '.join(where)} RETURNING id",
+        vals,
+    )
+    return rows
+
+
+# ── Visit tracking ─────────────────────────────────────────────────────────────
+
+@app.post("/functions/v1/track-visit")
+async def track_visit(request: Request):
+    """Record a page visit (replaces Supabase Edge Function)."""
+    try:
+        body     = await request.json()
+        page     = (body.get("page") or "/")[:200]
+        referral = (body.get("referral_code") or None)
+        ip       = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or None
+        _exec(
+            "INSERT INTO visits (page, referral_code, ip, visited_at)"
+            " VALUES (%s, %s, %s, NOW())"
+            " ON CONFLICT DO NOTHING",
+            (page, referral, ip),
+        )
+    except Exception:
+        pass  # fire-and-forget — never block the user
+    return {"ok": True}
+
+
+@app.post("/rest/v1/rpc/public_visit_stats")
+async def rpc_visit_stats(request: Request):
+    """Public visitor stats for the homepage globe."""
+    try:
+        body      = await request.json()
+        days_back = int(body.get("days_back", 30))
+    except Exception:
+        days_back = 30
+    rows = _all(
+        "SELECT COUNT(*) AS total_visits,"
+        " COUNT(DISTINCT ip) AS unique_ips"
+        " FROM visits WHERE visited_at >= NOW() - make_interval(days => %s)",
+        (days_back,),
+    )
+    return rows[0] if rows else {"total_visits": 0, "unique_ips": 0}
 
 
 # ══════════════════════════════════════════════════════════════════════════════
