@@ -1,0 +1,30 @@
+.section { background: var(--bg-1); }
+.grid { display: flex; align-items: center; justify-content: center; gap: 28px; max-width: 900px; margin: 0 auto; flex-wrap: wrap; }
+.card { background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--radius); padding: 28px 32px; flex: 1; min-width: 240px; max-width: 320px; }
+.cardHead { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.flag { font-size: 30px; line-height: 1; }
+.zone { font-size: 15px; font-weight: 700; }
+.tz   { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.window {
+  font-size: 22px; font-weight: 800; color: var(--text-dim);
+  margin-bottom: 6px; padding: 6px 0;
+  border-left: 3px solid var(--border); padding-left: 10px;
+  transition: border-color .3s, color .3s;
+  display: flex; align-items: baseline; gap: 8px;
+}
+.windowActive { color: var(--cyan); border-color: var(--cyan); }
+.slotLabel { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .07em; flex-shrink: 0; }
+.daily  { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; margin-top: 8px; margin-bottom: 16px; }
+.liveRow { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-dim); border-top: 1px solid var(--border); padding-top: 12px; }
+.clock { font-size: 14px; font-weight: 600; color: var(--text); min-width: 72px; letter-spacing: .03em; }
+.statusCenter { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 8px 12px; flex-shrink: 0; }
+.pulseWrap { position: relative; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; }
+.dot2 { width: 22px; height: 22px; border-radius: 50%; background: var(--text-muted); z-index: 1; position: relative; transition: background .4s; }
+.dotOnline  { background: #22d3a0; }
+.dotOffline { background: #3a3a4a; }
+.pulse { position: absolute; inset: 0; border-radius: 50%; background: #22d3a0; opacity: 0; }
+.pulseOnline { animation: hoursPulse 1.8s ease-out infinite; }
+@keyframes hoursPulse { 0% { transform: scale(.55); opacity: .55; } 100% { transform: scale(1.6); opacity: 0; } }
+.statusLabel { font-size: 12px; font-weight: 600; color: var(--text-muted); text-align: center; text-transform: uppercase; letter-spacing: .06em; }
+.statusOnline { color: #22d3a0; }
+@media (max-width: 680px) { .grid { flex-direction: column; align-items: stretch; } .card { max-width: none; } }

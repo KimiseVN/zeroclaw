@@ -1,0 +1,119 @@
+.main { min-height: 100vh; background: var(--bg); padding: 48px 24px 80px; }
+.container { max-width: 860px; margin: 0 auto; }
+
+.pageTitle { font-size: 28px; font-weight: 800; margin-bottom: 32px; }
+
+.grid { display: grid; grid-template-columns: 1fr 380px; gap: 28px; align-items: start; }
+
+/* Left — payment */
+.payCard {
+  background: var(--surface); border: 1px solid var(--border-2);
+  border-radius: var(--radius); padding: 28px;
+}
+.sectionTitle {
+  font-size: 13px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--text-muted); margin-bottom: 16px;
+}
+
+/* Method grid */
+.methods { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-bottom: 24px; }
+.method {
+  border: 1px solid var(--border-2); border-radius: 10px;
+  padding: 12px 14px; cursor: pointer; background: var(--bg-2);
+  display: flex; flex-direction: column; gap: 6px;
+  transition: all .15s; text-align: left;
+}
+.method:hover  { border-color: var(--cyan); }
+.methodActive  { border-color: var(--cyan); background: var(--cyan-dim); }
+.methodIcon    { font-size: 22px; }
+.methodLabel   { font-size: 13px; font-weight: 600; color: var(--text); }
+.methodSub     { font-size: 11px; color: var(--text-muted); }
+
+/* Payment detail area */
+.payDetail {
+  background: var(--bg-1); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px; margin-bottom: 20px;
+  min-height: 120px;
+}
+.payAddress {
+  font-family: monospace; font-size: 13px; color: var(--cyan);
+  word-break: break-all; margin-bottom: 12px;
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px;
+  display: flex; align-items: center; gap: 8px; justify-content: space-between;
+}
+.copyBtn {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-muted); transition: color .15s; padding: 2px; flex-shrink: 0;
+}
+.copyBtn:hover { color: var(--cyan); }
+.qr { display: block; border-radius: 10px; margin: 0 auto 12px; }
+.bankRow {
+  display: flex; justify-content: space-between;
+  font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--border);
+}
+.bankRow:last-child { border-bottom: none; }
+.bankKey { color: var(--text-muted); }
+.bankVal { font-weight: 600; color: var(--text); }
+.payLink {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 20px; border-radius: 10px; border: none; cursor: pointer;
+  font-size: 14px; font-weight: 700; transition: all .2s; text-decoration: none;
+}
+.paypalBtn { background: #FFC439; color: #003087; }
+.paypalBtn:hover { filter: brightness(1.05); }
+.stripeBtn { background: #635BFF; color: #fff; }
+.stripeBtn:hover { filter: brightness(1.1); }
+
+/* Form fields */
+.formGroup { margin-bottom: 16px; }
+.label {
+  display: block; font-size: 12px; font-weight: 600;
+  color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: .07em; margin-bottom: 8px;
+}
+.input {
+  width: 100%; background: var(--bg-1); border: 1px solid var(--border-2);
+  border-radius: 10px; padding: 11px 14px; font-size: 14px;
+  color: var(--text); outline: none; transition: border-color .15s;
+}
+.input:focus { border-color: var(--cyan); }
+.inputHint { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
+
+/* Divider */
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+.submitBtn { width: 100%; justify-content: center; font-size: 15px; padding: 14px 0; }
+.errMsg { font-size: 13px; color: var(--red); margin-bottom: 12px; text-align: center; }
+.loginPrompt {
+  text-align: center; padding: 40px 0; color: var(--text-dim); font-size: 14px;
+}
+
+/* Right — order summary */
+.summary {
+  background: var(--surface); border: 1px solid var(--border-2);
+  border-radius: var(--radius); padding: 24px;
+  position: sticky; top: 80px;
+}
+.sumPlan { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+.sumFeature { font-size: 13px; color: var(--text-dim); margin-bottom: 5px; }
+.sumFeature::before { content: "✓  "; color: var(--cyan); }
+.sumDivider { height: 1px; background: var(--border); margin: 16px 0; }
+.sumRow { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
+.sumLabel { color: var(--text-dim); }
+.sumVal { font-weight: 700; }
+.sumTotal { font-size: 22px; font-weight: 800; color: var(--cyan); }
+.emptyCart {
+  text-align: center; padding: 60px 0; color: var(--text-dim); font-size: 14px;
+}
+.emptyCart a { color: var(--cyan); text-decoration: none; }
+
+/* No methods warning */
+.noMethods {
+  text-align: center; padding: 32px; color: var(--text-muted); font-size: 14px;
+}
+
+@media (max-width: 700px) {
+  .grid { grid-template-columns: 1fr; }
+  .summary { position: static; }
+}

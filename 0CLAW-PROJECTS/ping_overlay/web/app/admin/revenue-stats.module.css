@@ -1,0 +1,119 @@
+/* ── Wrapper ──────────────────────────────────────────────────────────────── */
+.wrap { display: flex; flex-direction: column; gap: 20px; }
+
+/* ── Period selector ─────────────────────────────────────────────────────── */
+.periodRow {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.periodLabel {
+  font-size: 12px; color: var(--text-muted); font-weight: 600;
+  text-transform: uppercase; letter-spacing: .06em;
+}
+.periodBtn {
+  padding: 5px 16px; border-radius: 20px; border: 1px solid var(--border);
+  background: transparent; color: var(--text-muted);
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s;
+}
+.periodActive { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-dim); }
+.periodBtn:hover:not(.periodActive) { border-color: var(--border-2); color: var(--text); }
+.hint { font-size: 12px; color: var(--text-muted); margin-left: auto; }
+
+/* ── KPI cards ───────────────────────────────────────────────────────────── */
+.kpis {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+}
+.kpi {
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 20px 22px;
+  display: flex; flex-direction: column; gap: 5px;
+}
+.kpiNum   { font-size: 30px; font-weight: 800; color: var(--text); font-family: var(--font-head); line-height: 1; }
+.kpiCyan .kpiNum { color: var(--cyan); }
+.kpiLabel { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
+
+/* ── Empty ───────────────────────────────────────────────────────────────── */
+.empty {
+  text-align: center; padding: 48px 24px;
+  color: var(--text-dim); font-size: 15px;
+}
+
+/* ── Breakdown grid (method + plan side by side) ─────────────────────────── */
+.grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+}
+
+/* ── Card ────────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 20px 22px;
+}
+.cardTitle {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .07em; color: var(--text-muted);
+  margin-bottom: 16px; padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.cardEmpty { font-size: 13px; color: var(--text-muted); }
+
+/* ── Row ─────────────────────────────────────────────────────────────────── */
+.rows { display: flex; flex-direction: column; gap: 14px; }
+.row  { display: flex; align-items: center; gap: 10px; }
+
+.rowIcon { font-size: 20px; width: 26px; text-align: center; flex-shrink: 0; }
+
+.rowMid  { flex: 1; min-width: 0; }
+.rowName {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 5px;
+}
+.offBadge {
+  font-size: 9px; font-weight: 700; padding: 1px 5px;
+  border-radius: 4px; background: rgba(255,68,102,.15);
+  color: var(--red); border: 1px solid rgba(255,68,102,.3);
+  text-transform: uppercase; letter-spacing: .04em;
+}
+
+.barTrack {
+  height: 5px; background: var(--border); border-radius: 3px; overflow: hidden;
+}
+.barFill {
+  height: 100%; border-radius: 3px;
+  transition: width .5s ease;
+  opacity: 0.85;
+}
+
+.rowRight { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; min-width: 80px; }
+.rowAmt   { font-size: 14px; font-weight: 700; color: var(--text); }
+.rowSub   { font-size: 10px; color: var(--text-muted); }
+
+/* ── Timeline bar chart ──────────────────────────────────────────────────── */
+.timeline {
+  display: flex; align-items: flex-end; gap: 10px;
+  height: 140px; padding-top: 24px; overflow-x: auto;
+}
+.tlCol {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; flex: 1; min-width: 48px;
+}
+.tlAmt  { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
+.tlBarWrap {
+  flex: 1; width: 100%; display: flex; align-items: flex-end;
+}
+.tlBar {
+  width: 100%; min-height: 4px;
+  background: linear-gradient(180deg, var(--cyan), var(--cyan-dim));
+  border-radius: 3px 3px 0 0;
+  transition: height .4s ease;
+}
+.tlLabel { font-size: 10px; color: var(--text-muted); text-align: center; white-space: nowrap; }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 800px) {
+  .kpis { grid-template-columns: repeat(3, 1fr); }
+  .grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 500px) {
+  .kpis { grid-template-columns: 1fr 1fr; }
+  .kpiNum { font-size: 22px; }
+}

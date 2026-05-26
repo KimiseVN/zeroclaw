@@ -1,0 +1,47 @@
+.loginBtn {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 600;
+  padding: 7px 14px; border-radius: 8px;
+  background: var(--surface); border: 1px solid var(--border-2);
+  color: var(--text); cursor: pointer; white-space: nowrap;
+  transition: border-color .15s, background .15s;
+}
+.loginBtn:hover { border-color: var(--cyan); background: var(--surface-2); }
+
+.wrap { position: relative; }
+
+.chip {
+  display: flex; align-items: center; gap: 7px;
+  padding: 5px 12px; border-radius: 9px; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--border-2);
+  color: var(--text); transition: background .15s;
+}
+.chip:hover { background: var(--surface-2); }
+
+.avatar { border-radius: 50%; object-fit: cover; }
+.initials {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--cyan-dim); color: var(--cyan);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+}
+.chipName { font-size: 13px; font-weight: 600; }
+
+.dropdown {
+  position: absolute; top: calc(100% + 6px); right: 0;
+  background: var(--surface); border: 1px solid var(--border-2);
+  border-radius: 12px; padding: 6px; min-width: 180px;
+  box-shadow: var(--shadow); z-index: 200;
+}
+.dropItem {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 12px; border-radius: 8px;
+  font-size: 13px; font-weight: 500; text-decoration: none;
+  color: var(--text); cursor: pointer;
+  background: none; border: none; width: 100%; text-align: left;
+  transition: background .12s;
+}
+.dropItem:hover { background: var(--surface-2); }
+.adminLink { color: var(--magenta); }
+.sep { height: 1px; background: var(--border); margin: 4px 0; }
+.logout { color: var(--red); }

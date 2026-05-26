@@ -5,3 +5,8 @@ obf/
 update/
 *.bak.*
 *.sha256.txt
+
+# Next.js / web build artifacts
+web/.next/
+web/node_modules/
+web/out/

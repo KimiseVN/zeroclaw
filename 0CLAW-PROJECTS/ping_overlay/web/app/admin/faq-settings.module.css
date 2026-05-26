@@ -1,0 +1,77 @@
+.card {
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); overflow: hidden;
+  transition: border-color .15s;
+}
+.cardDisabled { opacity: 0.5; }
+.card:hover { border-color: var(--border-2); }
+
+.cardHead {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; cursor: pointer; user-select: none;
+}
+.preview {
+  font-size: 14px; font-weight: 500; color: var(--text);
+  flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.chevron { font-size: 11px; color: var(--text-muted); }
+
+.cardBody { padding: 0 16px 16px; border-top: 1px solid var(--border); }
+
+.textarea {
+  width: 100%; resize: vertical; font-family: inherit;
+  line-height: 1.5;
+}
+
+/* Order buttons */
+.orderBtns { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+.orderBtn {
+  width: 20px; height: 16px; border: none; background: none;
+  color: var(--text-muted); cursor: pointer; font-size: 9px; border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.orderBtn:hover:not(:disabled) { background: var(--surface-2); color: var(--text); }
+.orderBtn:disabled { opacity: 0.3; cursor: default; }
+
+/* Toggle */
+.toggle { display: flex; align-items: center; cursor: pointer; }
+.toggle input { display: none; }
+.slider {
+  width: 32px; height: 18px; border-radius: 9px;
+  background: var(--surface); border: 1px solid var(--border-2);
+  position: relative; transition: background .2s; flex-shrink: 0;
+}
+.slider::after {
+  content: ""; position: absolute; top: 2px; left: 2px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--text-muted); transition: transform .2s, background .2s;
+}
+.toggle input:checked + .slider { background: var(--cyan-dim); border-color: var(--cyan); }
+.toggle input:checked + .slider::after { transform: translateX(14px); background: var(--cyan); }
+
+.deleteBtn {
+  border: none; background: none; color: var(--text-muted);
+  cursor: pointer; font-size: 14px; padding: 2px 6px;
+  border-radius: 4px; transition: color .15s, background .15s;
+}
+.deleteBtn:hover { color: var(--red); background: rgba(255,70,70,.1); }
+
+/* Language tabs */
+.langTabs {
+  display: flex; gap: 4px; margin-bottom: 16px;
+  border-bottom: 1px solid var(--border); padding-bottom: 4px;
+}
+.langTab {
+  border: none; background: none; cursor: pointer;
+  padding: 6px 14px; border-radius: 6px 6px 0 0;
+  font-size: 13px; font-weight: 500; color: var(--text-muted);
+  transition: background .15s, color .15s;
+}
+.langTab:hover { background: var(--surface-2); color: var(--text); }
+.langTabActive {
+  background: rgba(0,229,255,.12);
+  color: var(--cyan);
+  border: 1px solid var(--border-2);
+  border-bottom: none;
+}

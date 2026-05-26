@@ -1,0 +1,106 @@
+.header {
+  background: rgba(8,12,20,.96);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(14px);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  gap: 16px;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: clamp(16px, 5vw, 48px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 17px;
+  text-decoration: none;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+}
+
+.nav a {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color .15s, background .15s;
+}
+.nav a:hover { color: var(--text); background: var(--surface); }
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.cartBtn {
+  position: relative;
+  background: var(--surface); border: 1px solid var(--border-2);
+  border-radius: 10px; padding: 8px 10px; cursor: pointer;
+  color: var(--text-dim); transition: all .15s;
+  display: flex; align-items: center;
+}
+.cartBtn:hover { border-color: var(--cyan); color: var(--cyan); }
+.cartBadge {
+  position: absolute; top: -5px; right: -5px;
+  background: var(--cyan); color: #000;
+  font-size: 10px; font-weight: 800;
+  width: 16px; height: 16px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.langToggle {
+  display: flex;
+  align-items: center;
+  background: var(--bg-2);
+  border: 1px solid var(--border-2);
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.langBtn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: color .15s, background .15s;
+  line-height: 1;
+}
+.langBtn:hover  { color: var(--text); }
+.langActive {
+  background: var(--surface);
+  color: var(--cyan);
+  box-shadow: 0 0 0 1px var(--border-2);
+}
+
+@media (max-width: 760px) {
+  .nav { display: none; }
+  .langBtn { font-size: 11px; padding: 5px 8px; }
+}

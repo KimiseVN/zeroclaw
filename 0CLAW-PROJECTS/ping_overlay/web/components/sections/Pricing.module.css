@@ -1,0 +1,87 @@
+.section { padding: 88px 0; background: var(--bg-1); }
+
+/* Single-row carousel — scrolls horizontally if viewport too narrow */
+.grid {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  margin: 0 0 32px;
+  padding: 12px 0 20px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-2) transparent;
+}
+.grid::-webkit-scrollbar        { height: 4px; }
+.grid::-webkit-scrollbar-track  { background: transparent; }
+.grid::-webkit-scrollbar-thumb  { background: var(--border-2); border-radius: 4px; }
+
+.card {
+  flex: 1 0 185px;
+  max-width: 230px;
+  scroll-snap-align: start;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 20px;
+  display: flex; flex-direction: column;
+  position: relative;
+}
+.card.popular {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 1px var(--cyan-dim), 0 0 40px var(--cyan-glow);
+}
+.card.best {
+  border-color: var(--magenta);
+}
+.badge {
+  position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+  background: var(--cyan); color: #000;
+  font-size: 11px; font-weight: 700; padding: 3px 12px;
+  border-radius: 20px; white-space: nowrap;
+}
+.card.best .badge { background: var(--magenta); color: #fff; }
+.duration { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+.price { font-size: 36px; font-weight: 800; font-family: var(--font-head); }
+.priceVnd { font-size: 13px; color: var(--text-dim); margin-bottom: 20px; }
+.features { flex: 1; display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+.features li { font-size: 13px; color: var(--text-dim); padding-left: 16px; position: relative; }
+.features li::before { content: "✓"; position: absolute; left: 0; color: var(--cyan); font-size: 11px; }
+.buyBtn {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 11px; border-radius: 10px; font-size: 14px; font-weight: 600;
+  background: var(--surface-2); border: 1px solid var(--border-2);
+  color: var(--text); cursor: pointer; transition: all .2s;
+}
+.buyBtn:hover { background: var(--cyan); border-color: var(--cyan); color: #000; }
+.note { text-align: center; color: var(--text-dim); font-size: 13px; max-width: 600px; margin: 0 auto; }
+.note a { color: var(--cyan); }
+
+.modalHead { text-align: center; margin-bottom: 20px; }
+.modalBadge {
+  display: inline-block; background: var(--surface-2); border: 1px solid var(--border-2);
+  border-radius: 20px; padding: 3px 12px; font-size: 12px; font-weight: 700;
+  margin-bottom: 8px;
+}
+.modalHead h3 { font-size: 20px; font-family: var(--font-head); }
+.modalHead p { font-size: 14px; color: var(--text-dim); margin-top: 4px; }
+
+.tabs { display: flex; gap: 4px; background: var(--surface-2); border-radius: 10px; padding: 4px; margin-bottom: 8px; }
+.tab, .tabActive { flex: 1; padding: 8px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
+.tab { background: none; color: var(--text-dim); }
+.tabActive { background: var(--surface); color: var(--text); }
+
+.bankInfo { display: flex; flex-direction: column; gap: 6px; }
+.bankRow { display: flex; justify-content: space-between; font-size: 13px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+.bankRow span { color: var(--text-dim); }
+
+.doneLink {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 11px; border-radius: 10px; font-size: 13px; font-weight: 600;
+  background: var(--surface-2); border: 1px solid var(--border-2);
+  color: var(--green); text-decoration: none; margin-top: 12px;
+  transition: background .15s;
+}
+.doneLink:hover { background: var(--surface); }

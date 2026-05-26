@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<!--
+  OG IMAGE TEMPLATE — WWM Overlay
+  ─────────────────────────────────────────────────────────────────────────
+  How to export as og-image.png:
+    1. Open this file in Chrome  (Ctrl+O → browse to this file)
+    2. Open DevTools → toggle device toolbar (Ctrl+Shift+M)
+    3. Set custom size: Width = 1200, Height = 630
+    4. Right-click anywhere → "Capture screenshot" (or use cmd "Capture full size screenshot")
+    5. Save the downloaded file as:  web/public/og-image.png
+  ─────────────────────────────────────────────────────────────────────────
+-->
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1200">
+  <title>OG Image Template — WWM Overlay</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&display=swap');
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 1200px;
+      height: 630px;
+      background: #0d0d12;
+      font-family: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+      color: #e0e0e0;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ── Background decoration ── */
+    .bg-glow-top {
+      position: absolute;
+      width: 700px;
+      height: 700px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,212,255,0.07) 0%, transparent 65%);
+      top: -280px;
+      right: -80px;
+      pointer-events: none;
+    }
+    .bg-glow-bottom {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(123,97,255,0.06) 0%, transparent 65%);
+      bottom: -200px;
+      left: -80px;
+      pointer-events: none;
+    }
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+
+    /* ── Layout ── */
+    .content {
+      position: relative;
+      z-index: 1;
+      width: 1200px;
+      height: 630px;
+      padding: 56px 64px 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* ── Top row: brand ── */
+    .top-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #00d4ff;
+      box-shadow: 0 0 12px #00d4ff;
+    }
+    .brand-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: #00d4ff;
+      letter-spacing: 0.5px;
+    }
+    .brand-sep {
+      width: 1px;
+      height: 18px;
+      background: rgba(255,255,255,0.15);
+    }
+    .brand-sub {
+      font-size: 14px;
+      color: rgba(255,255,255,0.35);
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* ── Main copy ── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-bottom: 12px;
+    }
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+    .eyebrow-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #00d4ff;
+    }
+    .eyebrow-text {
+      font-size: 13px;
+      color: #00d4ff;
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      font-weight: 500;
+    }
+
+    h1 {
+      font-size: 76px;
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -1px;
+      margin-bottom: 24px;
+    }
+    h1 .glow {
+      background: linear-gradient(90deg, #00d4ff 0%, #7b61ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .lead {
+      font-size: 20px;
+      color: rgba(255,255,255,0.5);
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      max-width: 640px;
+      line-height: 1.55;
+      margin-bottom: 36px;
+    }
+
+    /* ── Feature badges ── */
+    .badges {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(0,212,255,0.08);
+      border: 1px solid rgba(0,212,255,0.22);
+      border-radius: 999px;
+      padding: 7px 16px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.75);
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+    }
+    .badge-icon { font-size: 15px; }
+
+    /* ── Right panel (stat card) ── */
+    .right-panel {
+      position: absolute;
+      right: 64px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 260px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(4px);
+    }
+    .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 4px;
+    }
+    .stat-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: #00d4ff;
+      letter-spacing: -0.5px;
+    }
+    .stat-unit {
+      font-size: 14px;
+      color: rgba(255,255,255,0.35);
+      margin-left: 3px;
+    }
+    .stat-row { margin-bottom: 20px; }
+    .stat-row:last-child { margin-bottom: 0; }
+    .stat-mini-label { font-size: 11px; color: rgba(255,255,255,0.3); margin-bottom: 2px; }
+    .stat-mini-row { display: flex; gap: 12px; }
+    .stat-mini { font-size: 14px; color: rgba(255,255,255,0.55); }
+    .stat-mini span { color: rgba(255,255,255,0.8); font-weight: 600; }
+    .stat-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.07);
+      margin: 16px 0;
+    }
+    .safe-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,255,128,0.08);
+      border: 1px solid rgba(0,255,128,0.2);
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 12px;
+      color: #00ff88;
+      margin-top: 12px;
+    }
+
+    /* ── Bottom row ── */
+    .bottom-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .domain {
+      font-size: 16px;
+      color: rgba(255,255,255,0.3);
+      font-family: 'Inter', sans-serif;
+    }
+    .cta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #00d4ff;
+      color: #0d0d12;
+      border-radius: 999px;
+      padding: 10px 24px;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-glow-top"></div>
+  <div class="bg-glow-bottom"></div>
+  <div class="bg-grid"></div>
+
+  <div class="content">
+    <!-- Top brand bar -->
+    <div class="top-row">
+      <div class="brand-dot"></div>
+      <div class="brand-name">WWM Overlay</div>
+      <div class="brand-sep"></div>
+      <div class="brand-sub">Where Winds Meet companion</div>
+    </div>
+
+    <!-- Main copy -->
+    <div class="main">
+      <div class="eyebrow">
+        <div class="eyebrow-dot"></div>
+        <div class="eyebrow-text">Game overlay · Free trial</div>
+      </div>
+      <h1>Ping. FPS. Events.<br><span class="glow">All in one.</span></h1>
+      <p class="lead">
+        Real-time network stats, frame rate monitor, Guild Event schedule<br>
+        and Quest Helper — directly on your screen while you play.
+      </p>
+      <div class="badges">
+        <span class="badge"><span class="badge-icon">📡</span> Network Monitor</span>
+        <span class="badge"><span class="badge-icon">🎮</span> FPS Tracker</span>
+        <span class="badge"><span class="badge-icon">📅</span> Guild Events</span>
+        <span class="badge"><span class="badge-icon">🗺</span> Quest Helper</span>
+      </div>
+    </div>
+
+    <!-- Floating stat card -->
+    <div class="right-panel">
+      <div class="stat-row">
+        <div class="stat-label">Ping</div>
+        <div class="stat-value">24<span class="stat-unit">ms</span></div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-row">
+        <div class="stat-mini-label">Performance</div>
+        <div class="stat-mini-row">
+          <div class="stat-mini">FPS <span>144</span></div>
+          <div class="stat-mini">GPU <span>52°C</span></div>
+          <div class="stat-mini">RAM <span>8.1GB</span></div>
+        </div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-row">
+        <div class="stat-mini-label">Next Guild Event</div>
+        <div class="stat-mini"><span>02h 14m 38s</span></div>
+      </div>
+      <div class="safe-badge">🛡 Anti-cheat safe</div>
+    </div>
+
+    <!-- Bottom row -->
+    <div class="bottom-row">
+      <span class="domain">wwmoverlay.com</span>
+      <div class="cta">⬇ Free Download</div>
+    </div>
+  </div>
+</body>
+</html>

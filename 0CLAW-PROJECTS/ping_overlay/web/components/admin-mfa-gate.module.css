@@ -1,0 +1,162 @@
+/* ── AdminMfaGate ─────────────────────────────────────────────────────────── */
+
+.main {
+  min-height: calc(100vh - 72px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: 24px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius);
+  padding: 44px 40px;
+  max-width: 460px;
+  width: 100%;
+  text-align: center;
+}
+
+.shield { font-size: 52px; margin-bottom: 18px; line-height: 1; }
+
+.title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 10px;
+}
+
+.sub {
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.6;
+  margin: 0 0 28px;
+}
+
+.spinnerWrap {
+  display: flex;
+  justify-content: center;
+  padding: 32px 0;
+}
+
+/* ── QR code section ──────────────────────────────────────────────────────── */
+.qrSection {
+  margin-bottom: 28px;
+}
+
+.qrWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 14px;
+  padding: 10px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.15);
+  line-height: 0;
+}
+
+.qrImg {
+  display: block;
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.secretDetails {
+  text-align: left;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.secretSummary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  color: var(--cyan);
+  font-weight: 600;
+  font-size: 12px;
+}
+.secretSummary:hover { text-decoration: underline; }
+
+.secret {
+  display: block;
+  margin-top: 8px;
+  font-family: monospace;
+  font-size: 13px;
+  color: var(--text);
+  word-break: break-all;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: left;
+  letter-spacing: .08em;
+}
+
+/* ── Code input ───────────────────────────────────────────────────────────── */
+.inputSection {
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.inputLabel {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.codeInput {
+  width: 100%;
+  text-align: center;
+  letter-spacing: 0.55em;
+  font-size: 30px;
+  font-family: monospace;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--bg-1);
+  border: 2px solid var(--border-2);
+  border-radius: 12px;
+  padding: 14px 12px;
+  outline: none;
+  transition: border-color .15s;
+  box-sizing: border-box;
+}
+.codeInput:focus { border-color: var(--cyan); }
+.codeInput:disabled { opacity: .6; }
+.codeInput::placeholder { color: var(--border-2); }
+
+/* ── Actions ──────────────────────────────────────────────────────────────── */
+.err {
+  font-size: 13px;
+  color: var(--red);
+  margin: 0 0 14px;
+  text-align: left;
+}
+
+.verifyBtn {
+  width: 100%;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 500px) {
+  .card { padding: 32px 20px; }
+  .codeInput { font-size: 24px; letter-spacing: 0.4em; }
+}

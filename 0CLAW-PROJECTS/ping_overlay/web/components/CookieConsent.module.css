@@ -1,0 +1,165 @@
+/* ── Banner ───────────────────────────────────────────────────────────────── */
+.banner {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 780px;
+  z-index: 8000;
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 16px;
+  box-shadow: 0 16px 48px rgba(0,0,0,.55), 0 0 0 1px rgba(0,229,255,.06);
+  padding: 20px 22px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  animation: slideUp .3s cubic-bezier(.4,0,.2,1);
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.bannerIcon { font-size: 26px; flex-shrink: 0; margin-top: 2px; }
+
+.bannerContent { flex: 1; min-width: 0; }
+.bannerTitle {
+  font-size: 15px; font-weight: 700; color: var(--text);
+  margin: 0 0 4px;
+}
+.bannerText {
+  font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0;
+}
+.bannerText a { color: var(--cyan); text-decoration: none; }
+.bannerText a:hover { text-decoration: underline; }
+
+.bannerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.btnAccept {
+  padding: 9px 20px; border-radius: 9px; border: none; cursor: pointer;
+  font-size: 13px; font-weight: 700;
+  background: var(--cyan); color: #000;
+  white-space: nowrap;
+  transition: opacity .15s;
+}
+.btnAccept:hover { opacity: .85; }
+
+.btnCustom {
+  padding: 9px 16px; border-radius: 9px; cursor: pointer;
+  font-size: 13px; font-weight: 600;
+  background: transparent; color: var(--text-dim);
+  border: 1px solid var(--border-2);
+  white-space: nowrap;
+  transition: border-color .15s, color .15s;
+}
+.btnCustom:hover { border-color: var(--cyan); color: var(--cyan); }
+
+.btnReject {
+  padding: 9px 16px; border-radius: 9px; cursor: pointer;
+  font-size: 13px; font-weight: 600;
+  background: transparent; color: var(--text-muted);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+  transition: border-color .15s, color .15s;
+}
+.btnReject:hover { border-color: var(--border-2); color: var(--text-dim); }
+
+/* ── Settings modal (within banner) ─────────────────────────────────────── */
+.backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.7);
+  backdrop-filter: blur(6px);
+  z-index: 8500;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+  animation: fadeIn .15s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal {
+  width: 100%; max-width: 520px;
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 18px;
+  padding: 28px 26px 24px;
+  box-shadow: 0 24px 64px rgba(0,0,0,.6);
+  animation: slideUpModal .2s cubic-bezier(.4,0,.2,1);
+  max-height: 90vh; overflow-y: auto;
+}
+@keyframes slideUpModal {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.modalHeader { margin-bottom: 20px; }
+.modalTitle  { font-size: 19px; font-weight: 800; color: var(--text); margin: 0 0 4px; }
+.modalSub    { font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.5; }
+
+/* ── Cookie category rows ────────────────────────────────────────────────── */
+.categories { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
+
+.category {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: var(--bg-1);
+  transition: border-color .15s;
+}
+.category.active { border-color: rgba(0,229,255,.25); }
+
+.catHeader {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 6px;
+}
+.catIcon { font-size: 18px; flex-shrink: 0; }
+.catInfo { flex: 1; min-width: 0; }
+.catName { font-size: 14px; font-weight: 700; color: var(--text); margin: 0; }
+.catBadge {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 100px;
+  background: rgba(0,229,255,.1); color: var(--cyan);
+  border: 1px solid rgba(0,229,255,.2);
+  margin-left: 6px;
+}
+.catDesc { font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.5; }
+
+/* Toggle */
+.toggle {
+  width: 40px; height: 22px; border-radius: 11px;
+  background: var(--border-2);
+  position: relative; cursor: pointer; flex-shrink: 0;
+  transition: background .2s;
+  border: none; outline: none;
+}
+.toggle.on { background: var(--cyan); }
+.toggle.disabled { opacity: .45; cursor: not-allowed; }
+.toggleThumb {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: #fff;
+  position: absolute; top: 3px; left: 3px;
+  transition: left .2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,.3);
+}
+.toggle.on .toggleThumb { left: 21px; }
+
+/* ── Modal actions ───────────────────────────────────────────────────────── */
+.modalActions {
+  display: flex; gap: 10px; flex-wrap: wrap;
+}
+.modalActions .btnAccept { flex: 1; text-align: center; padding: 11px; }
+.modalActions .btnCustom { flex: 1; text-align: center; padding: 11px; }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .banner { flex-direction: column; gap: 14px; bottom: 16px; padding: 18px; }
+  .bannerActions { width: 100%; }
+  .btnAccept, .btnCustom, .btnReject { flex: 1; text-align: center; }
+}

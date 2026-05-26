@@ -1,0 +1,39 @@
+.main { min-height: 100vh; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: 40px 24px; }
+.card {
+  background: var(--surface); border: 1px solid var(--border-2);
+  border-radius: var(--radius-lg); padding: 48px 40px;
+  max-width: 520px; width: 100%; text-align: center;
+}
+.icon { font-size: 56px; margin-bottom: 20px; }
+.title { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+.sub { font-size: 15px; color: var(--text-dim); margin-bottom: 28px; }
+
+.orderBox {
+  background: var(--bg-1); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 18px; margin-bottom: 24px; text-align: left;
+}
+.orderRow { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.orderRow:last-child { border-bottom: none; }
+.orderKey { color: var(--text-muted); }
+.orderVal { font-weight: 600; color: var(--text); }
+
+.steps { text-align: left; margin-bottom: 28px; }
+.step { display: flex; gap: 12px; margin-bottom: 14px; }
+.stepNum {
+  width: 24px; height: 24px; border-radius: 50%; background: var(--cyan-dim);
+  border: 1px solid var(--cyan); color: var(--cyan); font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+}
+.stepText { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+.stepText strong { color: var(--text); }
+
+.hwidForm { margin-bottom: 24px; text-align: left; }
+.label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin-bottom: 8px; display: block; }
+.input {
+  width: 100%; background: var(--bg-1); border: 1px solid var(--border-2);
+  border-radius: 10px; padding: 11px 14px; font-size: 14px;
+  color: var(--text); outline: none; margin-bottom: 10px;
+}
+.input:focus { border-color: var(--cyan); }
+
+.actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }

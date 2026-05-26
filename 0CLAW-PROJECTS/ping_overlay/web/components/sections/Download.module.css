@@ -1,0 +1,43 @@
+.section { background: var(--bg-1); }
+.inner { display: flex; gap: 60px; align-items: flex-start; max-width: 1000px; margin: 0 auto; flex-wrap: wrap; padding-inline: clamp(16px, 5vw, 48px); }
+.copy { flex: 1; min-width: 280px; }
+.copy h2 { font-size: 36px; margin: 0 0 16px; }
+.reqs { display: flex; flex-direction: column; gap: 10px; margin: 24px 0; }
+.reqs li { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-dim); }
+.socials { display: flex; gap: 12px; }
+.socialBtn { display: flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border-2); font-size: 14px; font-weight: 600; text-decoration: none; color: var(--text); transition: border-color .15s; }
+.socialBtn:hover { border-color: var(--cyan); }
+.card { flex: 1; min-width: 280px; max-width: 400px; background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--radius-lg); padding: 28px; }
+.cardHead { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.cardLabel { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .06em; }
+.cardHead h3 { font-size: 20px; font-weight: 800; }
+.stableBadge { background: rgba(0,255,136,.12); color: var(--green); border: 1px solid rgba(0,255,136,.25); font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+/* Referral input */
+.refRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.refInput {
+  flex: 1;
+  padding: 9px 14px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 14px;
+  font-family: "Consolas", monospace;
+  letter-spacing: .08em;
+  outline: none;
+  transition: border-color .15s;
+  text-transform: uppercase;
+}
+.refInput::placeholder { letter-spacing: normal; text-transform: none; font-family: inherit; }
+.refInput:focus { border-color: var(--cyan); }
+.refApplied { font-size: 13px; font-weight: 700; color: var(--green); white-space: nowrap; }
+
+.dlBtn { width: 100%; justify-content: center; margin-bottom: 12px; }
+.support { display: block; text-align: center; font-size: 13px; color: var(--text-dim); text-decoration: none; margin-bottom: 14px; }
+.support:hover { color: var(--cyan); }
+.smartscreen { font-size: 12px; color: var(--text-muted); line-height: 1.6; }

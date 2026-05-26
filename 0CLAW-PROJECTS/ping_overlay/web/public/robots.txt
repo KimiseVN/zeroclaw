@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Private / utility routes — not for indexing
+Disallow: /admin/
+Disallow: /akimxiu/
+Disallow: /dashboard/
+Disallow: /auth/
+Disallow: /checkout/
+Disallow: /ref/
+Disallow: /thank-you/
+Disallow: /reset-password/
+
+Sitemap: https://wwmoverlay.com/sitemap.xml

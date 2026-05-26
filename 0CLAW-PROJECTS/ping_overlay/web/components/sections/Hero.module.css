@@ -1,0 +1,12 @@
+.hero { padding: 100px 0 80px; }
+.inner { max-width: 800px; }
+.h1 { font-size: clamp(38px, 6vw, 64px); font-weight: 800; margin-bottom: 20px; }
+.glow { color: var(--cyan); text-shadow: 0 0 40px var(--cyan-glow); }
+.lead { font-size: 18px; color: var(--text-dim); margin-bottom: 32px; max-width: 580px; }
+.copy { max-width: 640px; }
+.actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 40px; }
+.trust { display: flex; gap: 28px; flex-wrap: wrap; }
+.trustItem { display: flex; align-items: center; gap: 10px; }
+.trustIcon { font-size: 24px; }
+.trustItem strong { display: block; font-size: 14px; font-weight: 700; }
+.trustItem small  { display: block; font-size: 12px; color: var(--text-dim); }

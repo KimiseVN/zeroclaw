@@ -1,0 +1,103 @@
+/* ── Wrapper ──────────────────────────────────────────────────────────────── */
+.wrap { display: flex; flex-direction: column; gap: 24px; }
+
+/* ── Period selector ─────────────────────────────────────────────────────── */
+.periodRow {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.periodLabel { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.periodBtn {
+  padding: 5px 16px; border-radius: 20px; border: 1px solid var(--border);
+  background: transparent; color: var(--text-muted); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all .15s;
+}
+.periodActive { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-dim); }
+.periodBtn:hover:not(.periodActive) { border-color: var(--border-2); color: var(--text); }
+.totalHint { font-size: 12px; color: var(--text-muted); margin-left: auto; }
+
+/* ── Stats row ───────────────────────────────────────────────────────────── */
+.stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+}
+.stat {
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.statNum   { font-size: 28px; font-weight: 800; color: var(--text); }
+.statAccent { color: var(--cyan); }
+.statLabel { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
+
+/* ── Main: Globe + Countries ─────────────────────────────────────────────── */
+.main {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ── Globe ───────────────────────────────────────────────────────────────── */
+.globeWrap {
+  background: #060914;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  aspect-ratio: 1;
+  max-height: 520px;
+  position: relative;
+}
+.globePlaceholder {
+  width: 100%; aspect-ratio: 1; max-height: 520px;
+  display: flex; align-items: center; justify-content: center;
+  background: #060914;
+}
+.globeHint {
+  position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+  font-size: 11px; color: rgba(255,255,255,0.3);
+  white-space: nowrap; pointer-events: none;
+}
+
+/* ── Countries ───────────────────────────────────────────────────────────── */
+.countries {
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px;
+}
+.countriesTitle {
+  font-size: 13px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .07em; color: var(--text-muted);
+  margin-bottom: 16px; padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.noData { font-size: 13px; color: var(--text-muted); text-align: center; padding: 24px 0; }
+.countryList { display: flex; flex-direction: column; gap: 12px; }
+
+.countryRow {
+  display: flex; align-items: center; gap: 10px;
+}
+.rank { font-size: 11px; color: var(--text-muted); width: 22px; text-align: right; flex-shrink: 0; }
+.flagEmoji { font-size: 22px; line-height: 1; flex-shrink: 0; }
+.countryInfo { flex: 1; min-width: 0; }
+.countryName {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+.countryBar {
+  height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;
+}
+.countryBarFill {
+  height: 100%; background: linear-gradient(90deg, var(--cyan), var(--cyan-dim));
+  border-radius: 2px; transition: width .5s ease;
+}
+.countryCount { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
+.countryNum { font-size: 14px; font-weight: 700; color: var(--text); }
+.countryPct { font-size: 10px; color: var(--text-muted); }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .stats  { grid-template-columns: repeat(2, 1fr); }
+  .main   { grid-template-columns: 1fr; }
+}
+@media (max-width: 500px) {
+  .stats  { grid-template-columns: repeat(2, 1fr); }
+}

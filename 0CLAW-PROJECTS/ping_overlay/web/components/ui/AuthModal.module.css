@@ -1,0 +1,190 @@
+/* ── Backdrop ──────────────────────────────────────────────────────────────── */
+.backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, .72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 9000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+  animation: fadeIn .15s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── Card ─────────────────────────────────────────────────────────────────── */
+.card {
+  width: 100%; max-width: 420px;
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 18px;
+  padding: 32px 28px 28px;
+  position: relative;
+  box-shadow: 0 24px 64px rgba(0,0,0,.6);
+  animation: slideUp .2s cubic-bezier(.4,0,.2,1);
+}
+@keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.closeBtn {
+  position: absolute; top: 16px; right: 16px;
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--text-muted); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; line-height: 1;
+  transition: background .12s, color .12s;
+}
+.closeBtn:hover { background: var(--border); color: var(--text); }
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+.header { margin-bottom: 24px; }
+.logoWrap { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.logoIcon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--cyan-dim), rgba(0,229,255,.12));
+  border: 1px solid rgba(0,229,255,.25);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.logoName { font-size: 15px; font-weight: 700; color: var(--text); }
+.title { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+.subtitle { font-size: 13px; color: var(--text-muted); }
+
+/* ── Mode toggle (Sign in / Sign up) ─────────────────────────────────────── */
+.modeToggle {
+  display: flex; background: var(--bg-1);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 3px; margin-bottom: 22px; gap: 2px;
+}
+.modeBtn {
+  flex: 1; padding: 8px; border-radius: 8px; border: none; cursor: pointer;
+  font-size: 13px; font-weight: 600; transition: background .15s, color .15s;
+  background: transparent; color: var(--text-muted);
+}
+.modeBtnActive { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+
+/* ── OAuth provider buttons ───────────────────────────────────────────────── */
+.providers { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+
+.providerBtn {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; padding: 11px 16px; border-radius: 10px;
+  border: 1px solid var(--border-2);
+  background: var(--bg-1); color: var(--text);
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: border-color .15s, background .15s, transform .1s;
+}
+.providerBtn:hover { border-color: var(--text-muted); background: var(--surface-2); transform: translateY(-1px); }
+.providerBtn:active { transform: translateY(0); }
+.providerBtn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+.providerIcon { width: 20px; height: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.providerLabel { flex: 1; text-align: left; }
+.providerArrow { color: var(--text-muted); font-size: 14px; }
+
+/* Provider color accents */
+.google  { --p-accent: #4285F4; }
+.discord { --p-accent: #5865F2; }
+.github  { --p-accent: #f0f6fc; }
+.twitter { --p-accent: #1DA1F2; }
+.providerBtn:hover { border-color: var(--p-accent, var(--text-muted)); }
+
+/* ── Divider ──────────────────────────────────────────────────────────────── */
+.divider {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 20px;
+  color: var(--text-muted); font-size: 12px; font-weight: 500; letter-spacing: .05em;
+}
+.divider::before, .divider::after {
+  content: ""; flex: 1; height: 1px; background: var(--border);
+}
+
+/* ── Email form ───────────────────────────────────────────────────────────── */
+.form { display: flex; flex-direction: column; gap: 12px; }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+.label { font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: .04em; text-transform: uppercase; }
+.input {
+  width: 100%; padding: 11px 14px; border-radius: 10px;
+  background: var(--bg-1); border: 1px solid var(--border-2);
+  color: var(--text); font-size: 14px; outline: none;
+  transition: border-color .15s;
+  box-sizing: border-box;
+}
+.input:focus { border-color: var(--cyan); }
+.input::placeholder { color: var(--text-muted); }
+.input:disabled { opacity: .5; }
+
+.submitBtn {
+  width: 100%; padding: 12px; border-radius: 10px; border: none;
+  background: var(--cyan); color: #000; font-size: 14px; font-weight: 700;
+  cursor: pointer; margin-top: 4px;
+  transition: opacity .15s, transform .1s;
+}
+.submitBtn:hover { opacity: .88; transform: translateY(-1px); }
+.submitBtn:active { transform: translateY(0); }
+.submitBtn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+/* ── Email mode tabs (Password vs Magic link) ─────────────────────────────── */
+.emailTabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+.emailTab {
+  padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer;
+  border: none; background: transparent; color: var(--text-muted);
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color .12s, border-color .12s;
+}
+.emailTabActive { color: var(--cyan); border-bottom-color: var(--cyan); }
+
+/* ── Extras (forgot password, magic link sent, etc.) ─────────────────────── */
+.extras { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
+.link {
+  font-size: 12px; color: var(--cyan); background: none; border: none;
+  cursor: pointer; padding: 0; text-decoration: none;
+}
+.link:hover { text-decoration: underline; }
+
+/* ── Success state ───────────────────────────────────────────────────────── */
+.successBox {
+  text-align: center; padding: 24px 0 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.successIcon { font-size: 40px; }
+.successTitle { font-size: 18px; font-weight: 700; color: var(--text); }
+.successText { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+.successEmail { color: var(--cyan); font-weight: 600; }
+
+/* ── Error banner ─────────────────────────────────────────────────────────── */
+.error {
+  padding: 10px 14px; border-radius: 8px; margin-bottom: 12px;
+  background: rgba(255,59,48,.12); border: 1px solid rgba(255,59,48,.3);
+  color: var(--red); font-size: 13px;
+}
+
+/* ── Footer note ─────────────────────────────────────────────────────────── */
+.footerNote {
+  margin-top: 20px; font-size: 11px; color: var(--text-muted);
+  text-align: center; line-height: 1.6;
+}
+.footerNote a { color: var(--text-dim); }
+
+/* ── Spinner ─────────────────────────────────────────────────────────────── */
+.btnSpinner {
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid rgba(0,0,0,.2); border-top-color: #000;
+  animation: spin .6s linear infinite; display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Shown while Turnstile invisible challenge is still in progress */
+.turnstileNote {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  margin: 6px 0 0;
+  opacity: .8;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .card { padding: 24px 18px 22px; border-radius: 16px; }
+  .title { font-size: 20px; }
+}

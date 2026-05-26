@@ -1,0 +1,167 @@
+.main { min-height: calc(100vh - 72px); background: var(--bg); }
+
+/* Hero */
+.hero {
+  background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,255,136,.10) 0%, transparent 70%), var(--bg-1);
+  border-bottom: 1px solid var(--border);
+  padding: 80px 24px 72px;
+  text-align: center;
+}
+.heroInner { max-width: 680px; margin: 0 auto; }
+
+.inviteBadge {
+  display: inline-block;
+  background: rgba(0,255,136,.12);
+  border: 1px solid rgba(0,255,136,.3);
+  color: var(--green);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 6px 18px;
+  border-radius: 99px;
+  margin-bottom: 24px;
+  letter-spacing: .04em;
+}
+
+.heroTitle {
+  font-size: clamp(28px, 5vw, 52px);
+  font-weight: 900;
+  line-height: 1.15;
+  margin: 0 0 18px;
+}
+.accent { color: var(--cyan); }
+
+.heroSub {
+  font-size: 18px;
+  color: var(--text-dim);
+  margin: 0 0 36px;
+  line-height: 1.6;
+}
+
+/* Code card */
+.codeCard {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border: 2px solid var(--cyan);
+  border-radius: var(--radius);
+  padding: 16px 24px;
+  margin-bottom: 32px;
+}
+.codeLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-muted);
+  margin: 0;
+}
+.code {
+  font-family: "Consolas", monospace;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: .18em;
+  color: var(--cyan);
+}
+.copyBtn {
+  background: var(--bg-2);
+  border: 1px solid var(--border-2);
+  border-radius: 8px;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.copyBtn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* Download button */
+.dlBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--cyan);
+  color: #000;
+  font-size: 17px;
+  font-weight: 800;
+  padding: 16px 36px;
+  border-radius: var(--radius);
+  text-decoration: none;
+  transition: opacity .15s, transform .1s;
+  margin-bottom: 14px;
+}
+.dlBtn:hover { opacity: .9; transform: translateY(-1px); }
+
+.smartscreen {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* Features */
+.features { padding: 72px 24px; }
+.featuresInner {
+  max-width: 960px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+.featureCard {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+.featureIcon { font-size: 32px; margin-bottom: 12px; }
+.featureCard h3 { font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+.featureCard p  { font-size: 14px; color: var(--text-dim); margin: 0; line-height: 1.5; }
+
+/* Reward section */
+.rewardSection {
+  background: var(--bg-1);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 64px 24px;
+  text-align: center;
+}
+.rewardInner { max-width: 800px; margin: 0 auto; }
+.rewardInner h2 { font-size: 28px; font-weight: 800; margin: 0 0 40px; }
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 24px;
+  text-align: left;
+}
+.step {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+.stepNum {
+  width: 32px; height: 32px;
+  background: var(--cyan);
+  color: #000;
+  font-weight: 900;
+  font-size: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.step p { font-size: 14px; color: var(--text-dim); margin: 0; line-height: 1.5; }
+
+/* CTA */
+.ctaSection { padding: 72px 24px; text-align: center; }
+.ctaInner { max-width: 600px; margin: 0 auto; }
+.ctaInner h2 { font-size: 32px; font-weight: 800; margin: 0 0 12px; }
+.ctaInner p  { font-size: 16px; color: var(--text-dim); margin: 0 0 32px; }
+
+@media (max-width: 600px) {
+  .codeCard { flex-direction: column; gap: 10px; text-align: center; }
+  .steps { grid-template-columns: 1fr 1fr; }
+}

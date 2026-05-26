@@ -1,0 +1,67 @@
+.wrap { display: flex; flex-direction: column; gap: 16px; }
+.hint { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+
+.methodCard {
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); overflow: hidden;
+  transition: border-color .2s;
+}
+.methodEnabled { border-color: var(--border-2); }
+
+.methodHead {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.methodTitle { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 700; }
+.methodIcon  { font-size: 20px; }
+
+/* Toggle switch */
+.toggle { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.toggle input { display: none; }
+.slider {
+  width: 36px; height: 20px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--border-2);
+  position: relative; transition: background .2s;
+  flex-shrink: 0;
+}
+.slider::after {
+  content: ""; position: absolute; top: 2px; left: 2px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--text-muted); transition: transform .2s, background .2s;
+}
+.toggle input:checked + .slider { background: var(--cyan-dim); border-color: var(--cyan); }
+.toggle input:checked + .slider::after { transform: translateX(16px); background: var(--cyan); }
+.toggleLabel { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+.toggle input:checked ~ .toggleLabel { color: var(--cyan); }
+
+/* Fields */
+.fields { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.field {}
+.fieldLabel { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin-bottom: 7px; }
+.input {
+  width: 100%; background: var(--bg-1); border: 1px solid var(--border-2);
+  border-radius: 10px; padding: 10px 14px; font-size: 13px;
+  color: var(--text); outline: none; transition: border-color .15s;
+}
+.input:focus { border-color: var(--cyan); }
+
+/* Plan links table */
+.planLinks { display: flex; flex-direction: column; gap: 8px; }
+.planRow { display: flex; align-items: center; gap: 10px; }
+.planId { font-size: 12px; font-weight: 600; color: var(--text-dim); width: 80px; flex-shrink: 0; }
+.linkInput {
+  flex: 1; background: var(--bg-1); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 12px; font-size: 12px;
+  color: var(--text-dim); outline: none; transition: border-color .15s;
+}
+.linkInput:focus { border-color: var(--cyan); color: var(--text); }
+
+/* Card footer */
+.cardFoot {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 20px; border-top: 1px solid var(--border);
+  background: var(--bg-2);
+}
+.msgOk  { font-size: 13px; color: var(--green); }
+.msgErr { font-size: 13px; color: var(--red); }
