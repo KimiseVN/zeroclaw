@@ -333,6 +333,7 @@ function ReferralCard({ initial }: { initial: Record<string, any> }) {
 const SECTION_META: Record<SectionId, { label: string; icon: string }> = {
   features:        { label: "Features",        icon: "✨" },
   demo:            { label: "Demo",            icon: "🎬" },
+  reforge:         { label: "Reforge Tracker", icon: "⚔️" },
   pricing:         { label: "Pricing",         icon: "💰" },
   download:        { label: "Download",        icon: "⬇️" },
   referral_banner: { label: "Referral Banner", icon: "🎁" },

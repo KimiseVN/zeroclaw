@@ -9,10 +9,12 @@ import ReferralBanner from "./ReferralBanner";
 import VisitorStats   from "./VisitorStats";
 import Faq            from "./Faq";
 import SupportHours   from "./SupportHours";
+import ReforgeSection from "./ReforgeSection";
 
 const SECTIONS: Record<SectionId, ReactElement> = {
   features:        <Features />,
   demo:            <Demo />,
+  reforge:         <ReforgeSection />,
   pricing:         <Pricing />,
   download:        <Download />,
   referral_banner: <ReferralBanner />,

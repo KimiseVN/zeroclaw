@@ -51,6 +51,7 @@ export default function Header() {
         <nav className={styles.nav}>
           <Link href="/#features">{T.nav.features[lang]}</Link>
           <Link href="/#demo">{T.nav.demo[lang]}</Link>
+          <Link href="/#reforge">{T.nav.reforge[lang]}</Link>
           <Link href="/#pricing">{T.nav.pricing[lang]}</Link>
           <Link href="/#download">{T.nav.download[lang]}</Link>
           <Link href="/#faq">{T.nav.faq[lang]}</Link>

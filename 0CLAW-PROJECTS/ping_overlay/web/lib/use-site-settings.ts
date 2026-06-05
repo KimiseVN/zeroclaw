@@ -146,7 +146,7 @@ export function useReferralConfig() {
 }
 
 export type SectionId =
-  | "features" | "demo" | "pricing" | "download"
+  | "features" | "demo" | "reforge" | "pricing" | "download"
   | "referral_banner" | "visitor_stats" | "faq" | "support_hours";
 
 export type SectionOrderConfig = {
@@ -155,7 +155,7 @@ export type SectionOrderConfig = {
 };
 
 export const ALL_SECTION_IDS: SectionId[] = [
-  "features", "demo", "pricing", "download",
+  "features", "demo", "reforge", "pricing", "download",
   "referral_banner", "visitor_stats", "faq", "support_hours",
 ];
 

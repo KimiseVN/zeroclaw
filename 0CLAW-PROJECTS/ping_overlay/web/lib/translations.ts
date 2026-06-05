@@ -2,13 +2,14 @@ export type Lang = "en" | "vi";
 
 export const T = {
   nav: {
-    features: { en: "Features",  vi: "Tính năng" },
-    demo:     { en: "Demo",      vi: "Demo"       },
-    pricing:  { en: "Pricing",   vi: "Bảng giá"   },
-    download: { en: "Download",  vi: "Tải xuống"  },
-    faq:      { en: "FAQ",       vi: "FAQ"         },
-    hours:    { en: "Hours",     vi: "Giờ hỗ trợ" },
-    buyNow:   { en: "Buy Now",   vi: "Mua ngay"   },
+    features: { en: "Features",       vi: "Tính năng"   },
+    demo:     { en: "Demo",           vi: "Demo"         },
+    reforge:  { en: "Reforge",        vi: "Reforge"      },
+    pricing:  { en: "Pricing",        vi: "Bảng giá"     },
+    download: { en: "Download",       vi: "Tải xuống"    },
+    faq:      { en: "FAQ",            vi: "FAQ"           },
+    hours:    { en: "Hours",          vi: "Giờ hỗ trợ"  },
+    buyNow:   { en: "Buy Now",        vi: "Mua ngay"     },
   },
 
   hero: {
@@ -71,6 +72,11 @@ export const T = {
         title: { en: "Game Tweaks",        vi: "Tối ưu Game"       },
         desc:  { en: "Optimize Windows registry for gaming: reduce input lag, disable Superfetch, ultimate performance mode.", vi: "Tối ưu registry Windows cho gaming: giảm input lag, tắt Superfetch, chế độ hiệu suất tối đa." },
         tags: ["Input lag","Performance","Registry"],
+      },
+      {
+        title: { en: "Reforge Tracker",    vi: "Reforge Tracker"   },
+        desc:  { en: "Track Pseudo-RNG pity per Appearance Remake slot. Hot/Prime alerts, stone cost calculator, save & load history per item.", vi: "Theo dõi pity Pseudo-RNG từng slot Appearance Remake. Cảnh báo Hot/Prime, tính chi phí đá, lưu/tải lịch sử theo item." },
+        tags: ["Pity","Stone cost","Per-item","Undo/Redo"],
       },
     ],
   },
@@ -142,6 +148,51 @@ export const T = {
     lead247: {
       en: "Available 24 hours a day, 7 days a week — we're always here when you need us.",
       vi: "Hoạt động 24 giờ mỗi ngày, 7 ngày mỗi tuần — chúng tôi luôn sẵn sàng hỗ trợ bạn.",
+    },
+  },
+
+  reforge: {
+    eyebrow: {
+      en: "Appearance Remake",
+      vi: "Appearance Remake",
+    },
+    heading: {
+      en: "Stop rolling blindly.\nTrack your pity.",
+      vi: "Đừng roll mò.\nTheo dõi pity từng slot.",
+    },
+    lead: {
+      en: "The Appearance Remake (Reforge) system uses Pseudo-RNG — fail counts accumulate per slot until a Gold is guaranteed. WWM Overlay's built-in tracker shows you exactly where each slot stands so you snipe at the right moment.",
+      vi: "Hệ thống Appearance Remake (Reforge) dùng Pseudo-RNG — số lần fail tích lũy theo từng slot cho đến khi Gold được đảm bảo. Tracker tích hợp sẵn trong WWM Overlay cho bạn biết chính xác trạng thái từng slot để snipe đúng lúc.",
+    },
+    callout: {
+      en: "Pseudo-RNG: ~35 rolls guarantee a Gold stat. Your fail count carries over — the more you've failed, the higher your chance next roll.",
+      vi: "Pseudo-RNG: ~35 lần roll là đảm bảo ra Gold. Fail count tích lũy — càng fail nhiều, tỉ lệ càng cao ở lần tiếp theo.",
+    },
+    features: [
+      {
+        icon: "🎯",
+        title: { en: "Per-slot pity counter",         vi: "Pity counter từng slot"   },
+        desc:  { en: "Each slot tracks fail count independently. Hot (20+) and Prime (30+) alerts let you know when a slot is ready to snipe.", vi: "Mỗi slot theo dõi fail count độc lập. Cảnh báo Hot (20+) và Prime (30+) cho biết khi nào nên snipe." },
+      },
+      {
+        icon: "🪨",
+        title: { en: "Stone cost calculator",         vi: "Tính chi phí đá Reforge"  },
+        desc:  { en: "Cost per roll changes with locked slots (0→1, 1→2, 2→5, 3→10 stones). The tracker shows your live cost on every roll.", vi: "Chi phí mỗi roll thay đổi theo slot khóa (0→1, 1→2, 2→5, 3→10 đá). Tracker hiển thị chi phí live trên mỗi roll." },
+      },
+      {
+        icon: "📁",
+        title: { en: "Named items & history",         vi: "Quản lý item & lịch sử"  },
+        desc:  { en: "Create one tracker per item. Each roll logs a pity snapshot of all 4 slots. Save and reload history any time.", vi: "Tạo một tracker riêng cho mỗi item. Mỗi roll ghi lại snapshot pity cả 4 slot. Lưu và tải lại lịch sử bất cứ lúc nào." },
+      },
+      {
+        icon: "↩",
+        title: { en: "Undo / Redo support",           vi: "Hỗ trợ Undo / Redo"      },
+        desc:  { en: "Rolled by mistake? Undo restores the previous state instantly. Up to 50 steps per item, per session.", vi: "Roll nhầm? Undo khôi phục trạng thái trước đó ngay lập tức. Tối đa 50 bước mỗi item." },
+      },
+    ],
+    howTo: {
+      en: "Open via tray icon → Reforge Roll Tracker. Works alongside the game overlay — no switching windows.",
+      vi: "Mở qua tray icon → Reforge Roll Tracker. Hoạt động song song với overlay — không cần chuyển cửa sổ.",
     },
   },
 
